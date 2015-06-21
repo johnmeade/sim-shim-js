@@ -4,7 +4,7 @@ editor.setTheme("ace/theme/monokai");
 editor.getSession().setMode("ace/mode/javascript");
 
 // download js
-$.get("series-plot-placeholder.js", function (data) {
+$.get("placeholder.js", function (data) {
     // set editor contents and run
     editor.getSession().setValue( data );
     updatePlot();
