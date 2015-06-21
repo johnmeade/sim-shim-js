@@ -1,0 +1,25 @@
+body {
+    background-color: #222;
+}
+#plot {
+    width: 60vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+#editor {
+    width: 40vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+#run-btn {
+    width: 60px;
+    height: 50px;
+    position: absolute;
+    top: 0;
+    right: 62vw;
+    z-index: 1000;
+}
