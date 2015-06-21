@@ -3,7 +3,6 @@ var babel = require("gulp-babel");
 var uglify = require("gulp-uglify");
 var rename = require("gulp-rename");
 var concat = require('gulp-concat');
-var ghPages = require('gulp-gh-pages');
 
 var DEST = "dist";
 
@@ -18,9 +17,4 @@ gulp.task("default", function () {
     .pipe(uglify())
     .pipe(rename({ extname: '.min.js' }))
     .pipe(gulp.dest(DEST));
-});
-
-gulp.task('deploy', function() {
-  return gulp.src('./dist/**/*')
-    .pipe(ghPages());
 });
