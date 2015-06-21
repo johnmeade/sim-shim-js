@@ -113,7 +113,7 @@ var plt = {
 var ss = new SimShim(
   document.getElementById("plot"),
   {
-    "cameraPosn": [2.4325, -0.84350, 1.1971],
+    "cameraPosn": [ -1.1585, -0.84029, 1.7159 ],
     "orbitTarget": [0.5, 0.5, 0.5]
   }
 );
