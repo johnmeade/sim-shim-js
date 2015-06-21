@@ -1,0 +1,82 @@
+<html>
+
+<head>
+    <title>Relaxation Solution to the Laplace Equation on a Sqaure</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+    body {
+        background-color: #222;
+    }
+    #plot {
+        width: 60vw;
+        height: 100vh;
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+    #editor {
+        width: 40vw;
+        height: 100vh;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    #run-btn {
+        width: 60px;
+        height: 50px;
+        position: absolute;
+        top: 0;
+        right: 62vw;
+        z-index: 1000;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="editor"></div>
+    <div id="plot"></div>
+    <button id="run-btn">Run Code</button>
+    <!-- <script src="/sim-shim-js/vendor/mathjs/math.min.js"></script>
+    <script src="/sim-shim-js/vendor/threejs/three.min.js"></script>
+    <script src="/sim-shim-js/vendor/threejs/controls/OrbitControls.js"></script> -->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="/sim-shim-js/js/ace/src-min/ace.js"></script>
+    <script type="text/javascript" src="/sim-shim-js/.publish/sim-shim-bundle.js"></script>
+    <script type="text/javascript">
+
+    // init ace
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.getSession().setMode("ace/mode/javascript");
+
+    // download js
+    $.get("relaxation-simple.js", function (data) {
+        // set editor contents and run
+        editor.getSession().setValue( data );
+        updatePlot();
+        console.log(data.slice(0,100));
+    });
+
+    function updatePlot () {
+        // stop current plot
+        console.log('up');
+        for (var x in window) {
+          var y = window[x];
+          if (y instanceof SimShim) y.kill();
+        }
+        console.log('up2');
+        $("#plot").empty();
+        // run new code
+        console.log('up3');
+        var code = editor.getSession().getValue();
+        console.log('up4');
+        eval(code);
+        console.log('up5');
+    }
+
+    $('#run-btn').click(updatePlot);
+
+    </script>
+</body>
+
+</html>

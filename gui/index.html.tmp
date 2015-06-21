@@ -1,0 +1,146 @@
+<html>
+<head>
+    <titlesim-shim-js Live Demo</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+    body {
+        background-color: #ddd;
+    }
+    #plot {
+        width: 70vw;
+        height: 100vh;
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+    #gui {
+        width: 30vw;
+        height: 100vh;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    .listElem {
+        padding: 20px;
+        font-size: larger;
+        color: #90B1ED;
+    }
+    </style>
+</head>
+<body>
+    <!--
+    -->
+    <div id="gui">
+        <div class="plot-type">
+            <p style="font-size: 20px;">Static Line Plot</p><br>
+            <p>x(t) = </p><input id="line-x"><br>
+            <p>y(t) = </p><input id="line-y"><br>
+            <p>z(t) = </p><input id="line-z"><br>
+            <p>Start Time</p><input id="line-start"><br>
+            <p>End Time</p><input id="line-end"><br>
+            <p>Time Step</p><input id="line-step"><br>
+            <button onclick="lineplot()">Plot</button>
+        </div>
+        <div class="plot-type">
+            <p style="font-size: 20px;">Animated Line Plot</p><br>
+            <p>x(t) = </p><input id="anim-line-x"><br>
+            <p>y(t) = </p><input id="anim-line-y"><br>
+            <p>z(t) = </p><input id="anim-line-z"><br>
+            <p>Trajectory Length</p><input id="anim-line-linelen"><br>
+            <p>Start Time</p><input id="anim-line-start"><br>
+            <p>Time Step</p><input id="anim-line-step"><br>
+            <button onclick="animlineplot()">Plot</button>
+        </div>
+        <div class="plot-type">
+            <p style="font-size: 20px;">Static Surface Plot</p><br>
+            <p>z(x,y) = </p><input id="surface-input"><br>
+            <p>Min x value</p><input id="surface-minX"><br>
+            <p>Max x value</p><input id="surface-maxX"><br>
+            <p>Min y value</p><input id="surface-minY"><br>
+            <p>Max y value</p><input id="surface-maxY"><br>
+            <p>Time Step</p><input id="surface-step"><br>
+            <!--
+            <p>Z-axis Rotation</p><input placeholder="[0,0,1]" id="surface-rotn"><br>
+            -->
+            <button onclick="surfaceplot()">Plot</button>
+        </div>
+    </div>
+    <div id="plot"></div>
+    <!-- 
+    <script src="/sim-shim-js/vendor/mathjs/math.min.js"></script>
+    <script src="/sim-shim-js/vendor/threejs/three.min.js"></script>
+    <script src="/sim-shim-js/vendor/threejs/controls/FlyControls.js"></script>
+    <script src="/sim-shim-js/vendor/threejs/controls/OrbitControls.js"></script>
+    <script src="/sim-shim-js/src/plotter-js.js"></script>
+    -->
+    <script>
+    function clearPlot () {
+        ThreePlot.activePlots = [];
+        document.getElementById('plot').innerHTML = '';
+    }
+
+    function lineplot () {
+        var x     = document.getElementById("line-x").value,
+            y     = document.getElementById("line-y").value,
+            z     = document.getElementById("line-z").value,
+            start = parseFloat( document.getElementById("line-start").value ),
+            end   = parseFloat( document.getElementById("line-end").value ),
+            step  = parseFloat( document.getElementById("line-step").value ),
+            plt   = {
+                "type" : "lineplot",
+                "parse": [x,y,z],
+                "start": start,
+                "end"  : end,
+                "step" : step
+            };
+        db=plt;
+        clearPlot();
+        ThreePlot.plot([plt], document.getElementById("plot"));
+    }
+
+    function animlineplot () {
+        var x = document.getElementById("anim-line-x").value,
+            y = document.getElementById("anim-line-y").value,
+            z = document.getElementById("anim-line-z").value,
+            linelen = parseInt( document.getElementById("anim-line-linelen").value ),
+            start = parseFloat( document.getElementById("anim-line-start").value ),
+            step = parseFloat( document.getElementById("anim-line-step").value ),
+            plt = {
+                "type"      : "lineplot",
+                "animated"  : true,
+                "parse"     : [x,y,z],
+                "lineLength": linelen,
+                "start"     : start,
+                "step"      : step
+            };
+        db=plt;
+        clearPlot();
+        ThreePlot.plot([plt], document.getElementById("plot"));
+    }
+
+    function surfaceplot () {
+        var fn   = document.getElementById("surface-input").value,
+            minX = parseFloat( document.getElementById("surface-minX").value ),
+            maxX = parseFloat( document.getElementById("surface-maxX").value ),
+            minY = parseFloat( document.getElementById("surface-minY").value ),
+            maxY = parseFloat( document.getElementById("surface-maxY").value ),
+            step = parseFloat( document.getElementById("surface-step").value ),
+            // rotn = document.getElementById("surface-rotn").value || [0,0,1],
+            plt  = {
+                "type": "surfaceplot",
+                // provide f(x,y), where z=f(x,y)
+                "parse"   : fn,
+                // "rotation": rotn,
+                "minX"    : minX,
+                "maxX"    : maxX,
+                "minY"    : minY,
+                "maxY"    : maxY,
+                "step"    : step
+            };
+        db=plt;
+        clearPlot();
+        ThreePlot.plot([plt], document.getElementById("plot"));
+    }
+    </script>
+</body>
+</html>

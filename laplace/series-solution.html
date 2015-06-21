@@ -1,0 +1,90 @@
+<html>
+
+<head>
+    <style>
+        body {
+            text-align: center;
+            font-size: 20px;
+            background-color: #eee;
+        }
+    </style>
+</head>
+
+<body>
+<div id="math">
+
+We will solve the Laplace equation:
+$$\frac{\partial^2 V}{\partial x^2} + \frac{\partial^2 V}{\partial y^2} = 0$$
+
+With boundary conditions
+$$V(0,y)=V(l,y)=V(x,0)=0 \textrm{ and } V(x,l)=V_0 \textrm{ for some } l \in \mathbb{R}$$
+
+<hr>
+
+Assume a seperable solution of the form:
+$$V(x,y)=X(x)Y(y)$$
+
+Substituting and choosing a negative and real separation constant, we get
+$$\frac{-X''}{X}=\frac{Y''}{Y}=-k^2$$
+
+<hr>
+
+For the X equation:
+$$\textrm{let } A_i \in \mathbb{R} \textrm{ be constants}$$
+$$X'' - k^2 X=0$$
+$$\implies X=A_1 cos(k x) + A_2 sin(k x)$$
+
+Applying the boundary conditions
+$$V(0,y)=0=V(l,y)$$
+We get
+$$A_1=0 \textrm{ and } kl=n \pi \textrm{ for } n \in \mathbb{Z}$$
+
+<hr>
+
+For the Y equation:
+$$Y'' + k^2 Y=0$$
+$$\implies Y=A_3 e^{ky} + A_4 e^{-ky}$$
+
+Apply the boundary condition
+$$V(x,0)=0$$
+$$\implies A_3=-A_4$$
+$$\implies Y=A_3 e^{ky} - A_3 e^{-ky}=2 A_3 sinh(ky)$$
+
+<hr>
+
+$$\textrm{let } B_n = 2 A_2 A_3$$
+$$\textrm{So } V_n(x,y)=B_n sin \left ( \frac{n \pi x}{l} \right ) sinh \left ( \frac{n \pi y}{l} \right )$$
+
+But this cannot satisfy
+$$V(x,l)=V_0$$
+
+So we must consider a linear combination of these solutions, ie
+$$V(x,y)=\sum_{n=1}^{\infty} V_n(x,y)$$
+
+<hr>
+
+So the boundary condition becomes
+$$V_0=\sum_{n=1}^{\infty} B_n sinh(n \pi) sin \left ( \frac{n \pi x}{l} \right )$$
+
+Use the Fourier trick (orthogonality of sines)
+$$\int_{0}^{l} V_0 sin \left ( \frac{m \pi x}{l} \right ) dx = \int_{0}^{l} \sum_{n=1}^{\infty} \left [ B_n sinh(n \pi) sin \left ( \frac{n \pi x}{l} \right ) sin \left ( \frac{m \pi x}{l} \right ) \right ] dx$$
+
+$$V_0 \left [ \frac{-l}{m \pi} cos \left ( \frac{m \pi x}{l} \right ) \right ]_{0}^{l} = \int_{0}^{l} B_m sinh(m \pi) sin \left ( \frac{m \pi x}{l} \right ) dx$$
+
+$$V_0 \left [ \frac{(-1)^{m+1} l}{m \pi} + \frac{l}{m \pi} \right ] = B_m sinh(m \pi) \frac{l}{2}$$
+
+$$2 V_0 [ 1 - (-1)^m ] = m \pi B_m sinh(m \pi)$$
+
+$$B_m = \frac{2 V_0 [ 1 - (-1)^m ]}{m \pi sinh(m \pi)} \implies B_m=0 \textrm{ for even } m$$
+
+Thus,
+
+$$V(x,y) = \sum_{m=1}^{\infty} \frac{2 V_0 [ 1 - (-1)^m ]}{m \pi sinh(m \pi)} sinh \left ( \frac{m \pi y}{l} \right ) sin \left ( \frac{m \pi x}{l} \right )$$
+
+</div>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+</body>
+
+</html>
