@@ -1,0 +1,7 @@
+{
+  "name": "John Meade",
+  "dependencies": {
+    "mathjs": "http://cdnjs.cloudflare.com/ajax/libs/mathjs/1.7.0/math.js",
+    "threejs": "https://raw.githubusercontent.com/mrdoob/three.js/master/build/three.js"
+  }
+}
