@@ -16,43 +16,43 @@ replace the contents of the plot
 
 // standard line plot
 var square = {
-"color": "#ee1155", // optional
-"type": "lineplot",
-"data": [ [0,0,0], [1,0,0], [1,0,1], [0,0,1], [0,0,0] ]
+  "color": "#ee1155", // optional
+  "type": "lineplot",
+  "data": [ [0,0,0], [1,0,0], [1,0,1], [0,0,1], [0,0,0] ]
 };
 
 // Parametric plot animation
 var animHelix = {
-"type": "lineplot",
-"animated": true,
-"lineLength": 10000, // animations must be fixed length
-"xyz": [-2,-1,0], // initial condition
-// The "next" function must return the next point each frame.
-// Here, it creates a spiral
-"next": function () {
+  "type": "lineplot",
+  "animated": true,
+  "lineLength": 10000, // animations must be fixed length
+  "xyz": [-2,-1,0], // initial condition
+  // The "next" function must return the next point each frame.
+  // Here, it creates a spiral
+  "next": function () {
     var t = this.t;
     var p = [Math.sin(t) - 2, Math.cos(t) - 2, t/10];
     this.t += 1/50;
     this.t = this.t % 100;
     return p;
-},
-"t": 0, // you can use custom keys
+  },
+  "t": 0, // you can use custom keys
 };
 
 // Other 3D animation
 var wireCube = {
-"type": "lineplot",
-"animated": true,
-"lineLength": 300, // animations must be fixed length
-"xyz": [2,2,0], // initial point
-// The "next" function must return the next point each frame.
-// Here, it just returns a random point in the unit cube
-"next": function () {
+  "type": "lineplot",
+  "animated": true,
+  "lineLength": 300, // animations must be fixed length
+  "xyz": [2,2,0], // initial point
+  // The "next" function must return the next point each frame.
+  // Here, it just returns a random point in the unit cube
+  "next": function () {
     var x = 2 + Math.random(),
         y = 2 + Math.random(),
         z = Math.random();
     return [x,y,z];
-},
+  },
 };
 
 var ss = new SimShim(

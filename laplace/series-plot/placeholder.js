@@ -19,43 +19,43 @@ var pi    = math.PI,
     ;
 
 function z_n (n,x,y) {
-    // one term in power series for z
-    var t1 = v0*(1 - pow(-1, n)),
-        t2 = n*pi*sinh(n*pi),
-        t3 = 2*sinh(n*pi*y/l),
-        t4 = sin(n*pi*x/l);
-    return t1 * t3 * t4 / t2;
+  // one term in power series for z
+  var t1 = v0*(1 - pow(-1, n)),
+      t2 = n*pi*sinh(n*pi),
+      t3 = 2*sinh(n*pi*y/l),
+      t4 = sin(n*pi*x/l);
+  return t1 * t3 * t4 / t2;
 }
 
 function z (x,y) {
-    // calculate z up up to 'terms' number of terms
-    var res = 0;
-    for (var i = 1; i <= terms; i++) {
-        res += z_n(i,x,y);
-    }
-    return res;
+  // calculate z up up to 'terms' number of terms
+  var res = 0;
+  for (var i = 1; i <= terms; i++) {
+    res += z_n(i,x,y);
+  }
+  return res;
 }
 
 function createMesh(minx,miny,maxx,maxy,step,fn) {
-    // create 2D array of z values for plotting
-    var sb = [];
-    for (var i = minx; i < maxx; i+=step) {
-        var row = [];
-        for (var j = miny; j < maxy; j+=step) {
-            row.push( fn(i,j) );
-        }
-        sb.push( row );
+  // create 2D array of z values for plotting
+  var sb = [];
+  for (var i = minx; i < maxx; i+=step) {
+    var row = [];
+    for (var j = miny; j < maxy; j+=step) {
+      row.push( fn(i,j) );
     }
-    return sb;
+    sb.push( row );
+  }
+  return sb;
 }
 
 var plt = {
-    "type": "surfaceplot",
-    "minX": 0,
-    "minY": 0,
-    "maxX": l,
-    "maxY": l,
-    "data": createMesh(0, 0, l, l, dx, z),
+  "type": "surfaceplot",
+  "minX": 0,
+  "minY": 0,
+  "maxX": l,
+  "maxY": l,
+  "data": createMesh(0, 0, l, l, dx, z),
 };
 
 var ss = new SimShim(
