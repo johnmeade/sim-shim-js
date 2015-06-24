@@ -498,29 +498,26 @@ class SimShim {
     // retarget camera (helpful for animations)
     plotTarget.addEventListener(
       'dblclick',
-      (function (that, SHOWGRID, SHOWAXES) {
-        return function (e) {
-          if (that.plotCtx.plots.length === 0) return;
-          that.updateMetrics();
-          that.retargetCamera();
-          // if (SHOWGRID) that.updateGrid();
-          // if (SHOWAXES) that.updateAxes();
-        }
-      })(this, SHOWGRID, SHOWAXES),
+      (e) => {
+        if (this.plotCtx.plots.length === 0) return;
+        this.updateMetrics();
+        this.retargetCamera();
+      },
       false
     );
 
     // resize
     window.addEventListener(
       'resize',
-      ((that) => {
-        return () => {
-          let r = that.plotCtx.renderer,
-              W = r.domElement.innerWidth,
-              H = r.domElement.innerHeight;
-          r.setSize( W, H );
-        }
-      })(this),
+      () => {
+        let r = this.plotCtx.renderer,
+            c = this.plotCtx.camera,
+            W = plotTarget.offsetWidth,
+            H = plotTarget.offsetHeight;
+        r.setSize( W, H );
+        c.aspect = W / H;
+        c.updateProjectionMatrix();
+      },
       false
     );
 

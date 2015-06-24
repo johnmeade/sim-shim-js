@@ -73785,6 +73785,8 @@ var SimShimPlot = (function () {
 
 var SimShim = (function () {
   function SimShim(plotTarget) {
+    var _this = this;
+
     var settings = arguments[1] === undefined ? {} : arguments[1];
 
     _classCallCheck(this, SimShim);
@@ -73907,25 +73909,22 @@ var SimShim = (function () {
     // Events
 
     // retarget camera (helpful for animations)
-    plotTarget.addEventListener("dblclick", (function (that, SHOWGRID, SHOWAXES) {
-      return function (e) {
-        if (that.plotCtx.plots.length === 0) return;
-        that.updateMetrics();
-        that.retargetCamera();
-        // if (SHOWGRID) that.updateGrid();
-        // if (SHOWAXES) that.updateAxes();
-      };
-    })(this, SHOWGRID, SHOWAXES), false);
+    plotTarget.addEventListener("dblclick", function (e) {
+      if (_this.plotCtx.plots.length === 0) return;
+      _this.updateMetrics();
+      _this.retargetCamera();
+    }, false);
 
     // resize
-    window.addEventListener("resize", (function (that) {
-      return function () {
-        var r = that.plotCtx.renderer,
-            W = r.domElement.innerWidth,
-            H = r.domElement.innerHeight;
-        r.setSize(W, H);
-      };
-    })(this), false);
+    window.addEventListener("resize", function () {
+      var r = _this.plotCtx.renderer,
+          c = _this.plotCtx.camera,
+          W = plotTarget.offsetWidth,
+          H = plotTarget.offsetHeight;
+      r.setSize(W, H);
+      c.aspect = W / H;
+      c.updateProjectionMatrix();
+    }, false);
   }
 
   _createClass(SimShim, [{
@@ -74119,11 +74118,11 @@ var SimShim = (function () {
   }, {
     key: "animate",
     value: function animate() {
-      var _this = this;
+      var _this2 = this;
 
       // loop
       window.requestAnimationFrame(function () {
-        _this.animate();
+        _this2.animate();
       });
 
       // increment iterator plot objects

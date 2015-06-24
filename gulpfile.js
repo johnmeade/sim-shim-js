@@ -9,7 +9,9 @@ var DEST = "dist";
 
 gulp.task("default", function () {
   return gulp.src([
-      'vendor/**/*.js',
+      'vendor/mathjs/**/*.js',
+      'vendor/threejs/**/*.js',
+      'vendor/threejs-extras/**/*.js',
       'src/sim-shim.es6'
     ])
     .pipe(babel({ 'only': /.es6/ }))
