@@ -507,12 +507,14 @@ class SimShim {
     );
 
     // resize
+    var r = this.plotCtx.renderer,
+        c = this.plotCtx.camera;
     window.addEventListener(
       'resize',
       () => {
-        var r = this.plotCtx.renderer,
-            c = this.plotCtx.camera,
-            W = r.domElement.offsetWidth,
+        // var r = this.plotCtx.renderer,
+        //     c = this.plotCtx.camera,
+        var W = r.domElement.offsetWidth,
             H = r.domElement.offsetHeight;
         c.aspect = W / H;
         c.updateProjectionMatrix();
