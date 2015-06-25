@@ -17,9 +17,7 @@ gulp.task("default", function () {
     .pipe(babel({ 'only': /.es6/ }))
     .pipe(concat('sim-shim-bundle.js'))
     .pipe(gulp.dest(DEST))
-    .pipe(sourcemaps.init())
-      .pipe(uglify())
-      .pipe(rename({ extname: '.min.js' }))
-    .pipe(sourcemaps.write("."))
+    .pipe(uglify())
+    .pipe(rename({ extname: '.min.js' }))
     .pipe(gulp.dest(DEST));
 });
