@@ -512,8 +512,8 @@ class SimShim {
       () => {
         let r = this.plotCtx.renderer,
             c = this.plotCtx.camera,
-            W = plotTarget.offsetWidth,
-            H = plotTarget.offsetHeight;
+            W = r.domElement.offsetWidth,
+            H = r.domElement.offsetHeight;
         r.setSize( W, H );
         c.aspect = W / H;
         c.updateProjectionMatrix();
