@@ -73916,10 +73916,12 @@ var SimShim = (function () {
     }, false);
 
     // resize
+    var r = this.plotCtx.renderer,
+        c = this.plotCtx.camera;
     window.addEventListener("resize", function () {
-      var r = _this.plotCtx.renderer,
-          c = _this.plotCtx.camera,
-          W = r.domElement.offsetWidth,
+      // var r = this.plotCtx.renderer,
+      //     c = this.plotCtx.camera,
+      var W = r.domElement.offsetWidth,
           H = r.domElement.offsetHeight;
       c.aspect = W / H;
       c.updateProjectionMatrix();
