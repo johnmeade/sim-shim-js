@@ -73918,15 +73918,15 @@ var SimShim = (function () {
     // resize
     var r = this.plotCtx.renderer,
         c = this.plotCtx.camera;
-    window.addEventListener("resize", function () {
-      // var r = this.plotCtx.renderer,
-      //     c = this.plotCtx.camera,
-      var W = r.domElement.offsetWidth,
-          H = r.domElement.offsetHeight;
-      c.aspect = W / H;
-      c.updateProjectionMatrix();
-      r.setSize(W, H);
-    }, false);
+    window.addEventListener("resize", (function (rend, cam) {
+      return function () {
+        var W = rend.domElement.offsetWidth,
+            H = rend.domElement.offsetHeight;
+        cam.aspect = W / H;
+        cam.updateProjectionMatrix();
+        rend.setSize(W, H);
+      };
+    })(this.plotCtx.renderer, this.plotCtx.camera), false);
   }
 
   _createClass(SimShim, [{
