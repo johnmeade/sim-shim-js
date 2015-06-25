@@ -510,13 +510,13 @@ class SimShim {
     window.addEventListener(
       'resize',
       () => {
-        let r = this.plotCtx.renderer,
+        var r = this.plotCtx.renderer,
             c = this.plotCtx.camera,
             W = r.domElement.offsetWidth,
             H = r.domElement.offsetHeight;
-        r.setSize( W, H );
         c.aspect = W / H;
         c.updateProjectionMatrix();
+        r.setSize( W, H );
       },
       false
     );

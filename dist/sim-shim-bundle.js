@@ -73921,9 +73921,9 @@ var SimShim = (function () {
           c = _this.plotCtx.camera,
           W = r.domElement.offsetWidth,
           H = r.domElement.offsetHeight;
-      r.setSize(W, H);
       c.aspect = W / H;
       c.updateProjectionMatrix();
+      r.setSize(W, H);
     }, false);
   }
 
