@@ -73916,8 +73916,6 @@ var SimShim = (function () {
     }, false);
 
     // resize
-    var r = this.plotCtx.renderer,
-        c = this.plotCtx.camera;
     window.addEventListener("resize", (function (rend, cam) {
       return function () {
         var W = rend.domElement.offsetWidth,
