@@ -507,8 +507,6 @@ class SimShim {
     );
 
     // resize
-    var r = this.plotCtx.renderer,
-        c = this.plotCtx.camera;
     window.addEventListener(
       'resize',
       ((rend, cam) => {
