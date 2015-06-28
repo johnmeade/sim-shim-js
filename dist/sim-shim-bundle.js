@@ -74085,7 +74085,7 @@ var SimShim = (function () {
       // iterate
       for (var i = 0; i < this.plotCtx.plots.length; i++) {
         var p = this.plotCtx.plots[i];
-        setMaxMin(p.threeObj.geometry.vertices);
+        if (p.threeObj) setMaxMin(p.threeObj.geometry.vertices);
       }
 
       // compute extra metrics
