@@ -74667,12 +74667,12 @@ var SimShim = (function () {
 
     // -----------------------------------------------------
     // Renderer
-
     var renderer = new THREE.WebGLRenderer({
+
       // TODO expose more options?
       // scale: SCALE,
       // brightness: 2,
-      antialias: true
+      // antialias: true
     });
     renderer.setSize(WIDTH, HEIGHT);
     // renderer.domElement.style.top = "0px";
