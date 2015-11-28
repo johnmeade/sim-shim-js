@@ -12,7 +12,7 @@ gulp.task("default", function () {
       'vendor/mathjs/**/*.js',
       'vendor/threejs/**/*.js',
       'vendor/threejs-extras/**/*.js',
-      'src/sim-shim.es6'
+      'src/**/*.es6'
     ])
     .pipe(babel({ 'only': /.es6/ }))
     .pipe(concat('sim-shim-bundle.js'))

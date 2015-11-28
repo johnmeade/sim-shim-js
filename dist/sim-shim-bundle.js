@@ -74274,6 +74274,11 @@ var SimShimPlotCtx = (function () {
 
   return SimShimPlotCtx;
 })();
+"use strict";
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var SimShimPlot = (function () {
   function SimShimPlot(plot, scene, color, shading) {
@@ -74357,7 +74362,8 @@ var SimShimPlot = (function () {
           geometry.dynamic = true;
 
           // initialize all points in geometry to the initial point
-          var xyz = new THREE.Vector3(plot.xyz[0], plot.xyz[1], plot.xyz[2]);
+          var xyzArray = plot.next();
+          var xyz = new THREE.Vector3(xyzArray[0], xyzArray[1], xyzArray[2]);
           for (var j = 0; j < plot.lineLength; j++) {
             geometry.vertices.push(xyz);
           }
@@ -74614,6 +74620,11 @@ var SimShimPlot = (function () {
 
   return SimShimPlot;
 })();
+"use strict";
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var SimShim = (function () {
   function SimShim(plotTarget) {
@@ -74821,7 +74832,7 @@ var SimShim = (function () {
     key: "getPlot",
     value: function getPlot(id) {
       return this.plotCtx.plots.find(function (p) {
-        p.id == id;
+        return p.id == id;
       });
     }
   }, {
@@ -74849,7 +74860,7 @@ var SimShim = (function () {
           }
         }
         if (match > -1) {
-          this.plotCtx.scene.remove(ps[match].threeObj);
+          this.plotCtx.scene.remove(this.plotCtx.plots[match].threeObj);
           this.plotCtx.plots.splice(match, 1);
           this.ids.splice(ind, 1);
         }
