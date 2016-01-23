@@ -605,7 +605,7 @@ class SimShim {
         }
       }
       if (match > -1) {
-        this.plotCtx.scene.remove( ps[match].threeObj );
+        this.plotCtx.scene.remove( this.plotCtx.plots[match].threeObj );
         this.plotCtx.plots.splice( match, 1 );
         this.ids.splice( ind, 1 );
       }
