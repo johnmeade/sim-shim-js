@@ -1,4 +1,4 @@
-class SimShimPlot {
+export default class SimShimPlot {
   constructor (plot, scene, color, shading) {
     // parse plottable object into an iterator that updates ThreeJS geometries
     this.obj = plot;

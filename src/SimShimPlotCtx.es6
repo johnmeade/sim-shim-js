@@ -1,4 +1,4 @@
-class SimShimPlotCtx {
+export default class SimShimPlotCtx {
   constructor (renderer, scene, camera, controls, light) {
     this.renderer = renderer;
     this.scene    = scene;

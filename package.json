@@ -1,11 +1,8 @@
 {
   "devDependencies": {
-    "gulp": "3.9.0",
-    "gulp-babel": "5.1.0",
-    "gulp-concat": "2.5.2",
-    "gulp-rename": "1.2.2",
-    "gulp-uglify": "1.2.0",
-    "gulp-sourcemaps": "1.5.2",
-    "bower": "1.4.1"
+    "bower": "1.4.1",
+    "brunch": "^2.0",
+    "babel-brunch": "^6.0",
+    "uglify-js-brunch": "^2.0"
   }
 }

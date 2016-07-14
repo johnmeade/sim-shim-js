@@ -1,3 +1,17 @@
+Breaking Change
+----------------
+
+The library has been moved to a CommonJS pattern.
+The new API requires that you add the following line:
+```js
+var SimShim = require('SimShim');
+// Now, as before:
+//   var ss = new SimShim( target );
+//   ss.addPlot( plt );
+//   ...
+```
+
+
 3D Plotting and Animation Using WebGL
 ======================================
 
@@ -27,6 +41,7 @@ var square = {
     "data": [[0,0,0], [1,0,0], [1,1,0], [0,1,0], [0,0,0]]
 };
 
+var SimShim = require('SimShim');
 var ss = new SimShim( htmlElement );
 ss.addPlot( triangle );
 ss.addPlot( square );
@@ -47,6 +62,7 @@ var animSpiral = {
     "lineLength": 10000
 };
 
+var SimShim = require('SimShim');
 var ss = new SimShim( htmlElement );
 ss.addPlot( animSpiral );
 ss.start();
@@ -66,6 +82,7 @@ var blanket = {
     "step"  : 1/10
 };
 
+var SimShim = require('SimShim');
 var ss = new SimShim( htmlElement );
 ss.addPlot( blanket );
 ss.start();
@@ -88,6 +105,7 @@ var pulsingBlanket = {
     "dt"   : 1/20
 };
 
+var SimShim = require('SimShim');
 var ss = new SimShim( htmlElement );
 ss.addPlot( pulsingBlanket );
 ss.start();
@@ -119,4 +137,4 @@ Notes and Tips
 Building
 ---------
 
-`npm install && bower install && gulp`
+`npm install && bower install && brunch build`

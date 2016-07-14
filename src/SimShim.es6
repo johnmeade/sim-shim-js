@@ -1,4 +1,7 @@
-class SimShim {
+import SimShimPlotCtx from 'SimShimPlotCtx';
+import SimShimPlot from 'SimShimPlot';
+
+module.exports = class SimShim {
 
   constructor(plotTarget, settings = {}) {
     this.ids = [];
@@ -373,3 +376,5 @@ class SimShim {
     this.animate();
   }
 }
+
+// module.exports = SimShim;
