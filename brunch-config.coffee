@@ -1,9 +1,12 @@
 fs = require 'fs'
 
+LICENSES = 'LICENSES.js'
+OUT_FILE = 'sim-shim-bundle'
+
 module.exports =
   files:
     javascripts:
-      joinTo: 'sim-shim-bundle.js'
+      joinTo: OUT_FILE + '.js'
 
   paths:
     watched: ['src', 'vendor']
@@ -18,13 +21,12 @@ module.exports =
     production:
       files:
         javascripts:
-          joinTo: 'sim-shim-bundle.min.js'
+          joinTo: OUT_FILE + '.min.js'
       sourceMaps: true
 
   hooks:
     onCompile: (genFiles, changedAssets) ->
       # write licenses
-      f = genFiles[0] # only one output
-      lic = fs.readFileSync('LICENSES.js') # read existing contents into data
-      fs.appendFile f.path, lic, (err) =>
-        throw "Couldn't write Licenses!"
+      f = genFiles[0].path
+      lic = fs.readFileSync(LICENSES)
+      fs.appendFile f, lic, (err) => throw "Couldn't write Licenses!"
