@@ -148,7 +148,7 @@ var __makeRelativeRequire = function(require, mappings, pref) {
     return require(name);
   }
 };
-require.register("RungeKutta.es6", function(exports, require, module) {
+require.register("RungeKutta.js", function(exports, require, module) {
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -244,7 +244,7 @@ var RK4 = function (_RungeKutta) {
 }(RungeKutta);
 });
 
-;require.register("SimShim.es6", function(exports, require, module) {
+;require.register("SimShim.js", function(exports, require, module) {
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -648,7 +648,7 @@ module.exports = function () {
 // module.exports = SimShim;
 });
 
-require.register("SimShimPlot.es6", function(exports, require, module) {
+require.register("SimShimPlot.js", function(exports, require, module) {
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1003,7 +1003,7 @@ var SimShimPlot = function () {
 exports.default = SimShimPlot;
 });
 
-;require.register("SimShimPlotCtx.es6", function(exports, require, module) {
+;require.register("SimShimPlotCtx.js", function(exports, require, module) {
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1039,14 +1039,14 @@ var SimShimPlotCtx = function () {
 exports.default = SimShimPlotCtx;
 });
 
-;require.register("SimShimUtil.es6", function(exports, require, module) {
+;require.register("SimShimUtil.js", function(exports, require, module) {
 // import * as RKStuff from './runge-kutta';
 //
 // window.SimShimUtil = RKStuff;
 "use strict";
 });
 
-require.register("UtilFunctional.es6", function(exports, require, module) {
+require.register("UtilFunctional.js", function(exports, require, module) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -54185,7 +54185,7 @@ return /******/ (function(modules) { // webpackBootstrap
  * @author mrdoob / http://mrdoob.com/
  */
 
-var THREE = { REVISION: '79' };
+var THREE = { REVISION: '78' };
 
 //
 
@@ -54927,16 +54927,6 @@ THREE.Color.prototype = {
 		this.r += s;
 		this.g += s;
 		this.b += s;
-
-		return this;
-
-	},
-
-	sub: function( color ) {
-
-		this.r = Math.max( 0, this.r - color.r );
-		this.g = Math.max( 0, this.g - color.g );
-		this.b = Math.max( 0, this.b - color.b );
 
 		return this;
 
@@ -56015,12 +56005,6 @@ THREE.Vector2.prototype = {
 
 	},
 
-	distanceToManhattan: function ( v ) {
-
-		return Math.abs( this.x - v.x ) + Math.abs( this.y - v.y );
-
-	},
-
 	setLength: function ( length ) {
 
 		return this.multiplyScalar( length / this.length() );
@@ -56760,12 +56744,6 @@ THREE.Vector3.prototype = {
 		var dx = this.x - v.x, dy = this.y - v.y, dz = this.z - v.z;
 
 		return dx * dx + dy * dy + dz * dz;
-
-	},
-
-	distanceToManhattan: function ( v ) {
-
-		return Math.abs( this.x - v.x ) + Math.abs( this.y - v.y ) + Math.abs( this.z - v.z );
 
 	},
 
@@ -58311,36 +58289,16 @@ THREE.Box3.prototype = {
 
 						}
 
-					} else if ( geometry instanceof THREE.BufferGeometry ) {
+					} else if ( geometry instanceof THREE.BufferGeometry && geometry.attributes[ 'position' ] !== undefined ) {
 
-						var attribute = geometry.attributes.position;
+						var positions = geometry.attributes[ 'position' ].array;
 
-						if ( attribute !== undefined ) {
+						for ( var i = 0, il = positions.length; i < il; i += 3 ) {
 
-							var array, offset, stride;
+							v1.fromArray( positions, i );
+							v1.applyMatrix4( node.matrixWorld );
 
-							if ( attribute instanceof THREE.InterleavedBufferAttribute ) {
-
-								array = attribute.data.array;
-								offset = attribute.offset;
-								stride = attribute.data.stride;
-
-							} else {
-
-								array = attribute.array;
-								offset = 0;
-								stride = 3;
-
-							}
-
-							for ( var i = offset, il = array.length; i < il; i += stride ) {
-
-								v1.fromArray( array, i );
-								v1.applyMatrix4( node.matrixWorld );
-
-								scope.expandByPoint( v1 );
-
-							}
+							scope.expandByPoint( v1 );
 
 						}
 
@@ -63978,15 +63936,13 @@ THREE.InstancedInterleavedBuffer.prototype.copy = function ( source ) {
  * @author benaadams / https://twitter.com/ben_a_adams
  */
 
-THREE.InterleavedBufferAttribute = function ( interleavedBuffer, itemSize, offset, normalized ) {
+THREE.InterleavedBufferAttribute = function ( interleavedBuffer, itemSize, offset ) {
 
 	this.uuid = THREE.Math.generateUUID();
 
 	this.data = interleavedBuffer;
 	this.itemSize = itemSize;
 	this.offset = offset;
-
-	this.normalized = normalized === true;
 
 };
 
@@ -64005,12 +63961,6 @@ THREE.InterleavedBufferAttribute.prototype = {
 	get count() {
 
 		return this.data.count;
-
-	},
-
-	get array() {
-
-		return this.data.array;
 
 	},
 
@@ -64146,8 +64096,8 @@ THREE.Geometry = function () {
 
 	// update flags
 
-	this.elementsNeedUpdate = false;
 	this.verticesNeedUpdate = false;
+	this.elementsNeedUpdate = false;
 	this.uvsNeedUpdate = false;
 	this.normalsNeedUpdate = false;
 	this.colorsNeedUpdate = false;
@@ -65939,19 +65889,18 @@ Object.assign( THREE.BufferGeometry.prototype, THREE.EventDispatcher.prototype, 
 
 			var direct = geometry.__directGeometry;
 
-			if ( direct === undefined || geometry.elementsNeedUpdate === true ) {
+			if ( direct === undefined ) {
 
 				return this.fromGeometry( geometry );
 
 			}
 
-			direct.verticesNeedUpdate = geometry.verticesNeedUpdate || geometry.elementsNeedUpdate;
-			direct.normalsNeedUpdate = geometry.normalsNeedUpdate || geometry.elementsNeedUpdate;
-			direct.colorsNeedUpdate = geometry.colorsNeedUpdate || geometry.elementsNeedUpdate;
-			direct.uvsNeedUpdate = geometry.uvsNeedUpdate || geometry.elementsNeedUpdate;
-			direct.groupsNeedUpdate = geometry.groupsNeedUpdate || geometry.elementsNeedUpdate;
+			direct.verticesNeedUpdate = geometry.verticesNeedUpdate;
+			direct.normalsNeedUpdate = geometry.normalsNeedUpdate;
+			direct.colorsNeedUpdate = geometry.colorsNeedUpdate;
+			direct.uvsNeedUpdate = geometry.uvsNeedUpdate;
+			direct.groupsNeedUpdate = geometry.groupsNeedUpdate;
 
-			geometry.elementsNeedUpdate = false;
 			geometry.verticesNeedUpdate = false;
 			geometry.normalsNeedUpdate = false;
 			geometry.colorsNeedUpdate = false;
@@ -65962,11 +65911,9 @@ Object.assign( THREE.BufferGeometry.prototype, THREE.EventDispatcher.prototype, 
 
 		}
 
-		var attribute;
-
 		if ( geometry.verticesNeedUpdate === true ) {
 
-			attribute = this.attributes.position;
+			var attribute = this.attributes.position;
 
 			if ( attribute !== undefined ) {
 
@@ -65981,7 +65928,7 @@ Object.assign( THREE.BufferGeometry.prototype, THREE.EventDispatcher.prototype, 
 
 		if ( geometry.normalsNeedUpdate === true ) {
 
-			attribute = this.attributes.normal;
+			var attribute = this.attributes.normal;
 
 			if ( attribute !== undefined ) {
 
@@ -65996,7 +65943,7 @@ Object.assign( THREE.BufferGeometry.prototype, THREE.EventDispatcher.prototype, 
 
 		if ( geometry.colorsNeedUpdate === true ) {
 
-			attribute = this.attributes.color;
+			var attribute = this.attributes.color;
 
 			if ( attribute !== undefined ) {
 
@@ -66011,7 +65958,7 @@ Object.assign( THREE.BufferGeometry.prototype, THREE.EventDispatcher.prototype, 
 
 		if ( geometry.uvsNeedUpdate ) {
 
-			attribute = this.attributes.uv;
+			var attribute = this.attributes.uv;
 
 			if ( attribute !== undefined ) {
 
@@ -66026,7 +65973,7 @@ Object.assign( THREE.BufferGeometry.prototype, THREE.EventDispatcher.prototype, 
 
 		if ( geometry.lineDistancesNeedUpdate ) {
 
-			attribute = this.attributes.lineDistance;
+			var attribute = this.attributes.lineDistance;
 
 			if ( attribute !== undefined ) {
 
@@ -71454,7 +71401,7 @@ THREE.OrthographicCamera.prototype = Object.assign( Object.create( THREE.Camera.
  * @author tschw
  */
 
-THREE.PerspectiveCamera = function ( fov, aspect, near, far ) {
+THREE.PerspectiveCamera = function( fov, aspect, near, far ) {
 
 	THREE.Camera.call( this );
 
@@ -71888,7 +71835,7 @@ THREE.DirectionalLight = function ( color, intensity ) {
 
 	this.type = 'DirectionalLight';
 
-	this.position.copy( THREE.Object3D.DefaultUp );
+	this.position.set( 0, 1, 0 );
 	this.updateMatrix();
 
 	this.target = new THREE.Object3D();
@@ -71947,7 +71894,7 @@ THREE.HemisphereLight = function ( skyColor, groundColor, intensity ) {
 
 	this.castShadow = undefined;
 
-	this.position.copy( THREE.Object3D.DefaultUp );
+	this.position.set( 0, 1, 0 );
 	this.updateMatrix();
 
 	this.groundColor = new THREE.Color( groundColor );
@@ -72035,7 +71982,7 @@ THREE.SpotLight = function ( color, intensity, distance, angle, penumbra, decay 
 
 	this.type = 'SpotLight';
 
-	this.position.copy( THREE.Object3D.DefaultUp );
+	this.position.set( 0, 1, 0 );
 	this.updateMatrix();
 
 	this.target = new THREE.Object3D();
@@ -72552,15 +72499,15 @@ Object.assign( THREE.XHRLoader.prototype, {
 
 		if ( cached !== undefined ) {
 
-			scope.manager.itemStart( url );
+			if ( onLoad ) {
 
-			setTimeout( function () {
+				setTimeout( function () {
 
-				if ( onLoad ) onLoad( cached );
+					onLoad( cached );
 
-				scope.manager.itemEnd( url );
+				}, 0 );
 
-			}, 0 );
+			}
 
 			return cached;
 
@@ -72721,16 +72668,11 @@ Object.assign( THREE.ImageLoader.prototype, {
 
 	load: function ( url, onLoad, onProgress, onError ) {
 
-		var scope = this;
-
 		var image = document.createElementNS( 'http://www.w3.org/1999/xhtml', 'img' );
 		image.onload = function () {
 
 			URL.revokeObjectURL( image.src );
-
 			if ( onLoad ) onLoad( image );
-
-			scope.manager.itemEnd( url );
 
 		};
 
@@ -72740,7 +72682,7 @@ Object.assign( THREE.ImageLoader.prototype, {
 
 		} else {
 
-			var loader = new THREE.XHRLoader();
+			var loader = new THREE.XHRLoader( this.manager );
 			loader.setPath( this.path );
 			loader.setResponseType( 'blob' );
 			loader.load( url, function ( blob ) {
@@ -72750,8 +72692,6 @@ Object.assign( THREE.ImageLoader.prototype, {
 			}, onProgress, onError );
 
 		}
-
-		scope.manager.itemStart( url );
 
 		return image;
 
@@ -74034,23 +73974,18 @@ Object.assign( THREE.ObjectLoader.prototype, {
 				texture.uuid = data.uuid;
 
 				if ( data.name !== undefined ) texture.name = data.name;
-
 				if ( data.mapping !== undefined ) texture.mapping = parseConstant( data.mapping );
-
-				if ( data.offset !== undefined ) texture.offset.fromArray( data.offset );
-				if ( data.repeat !== undefined ) texture.repeat.fromArray( data.repeat );
-				if ( data.wrap !== undefined ) {
+				if ( data.offset !== undefined ) texture.offset = new THREE.Vector2( data.offset[ 0 ], data.offset[ 1 ] );
+				if ( data.repeat !== undefined ) texture.repeat = new THREE.Vector2( data.repeat[ 0 ], data.repeat[ 1 ] );
+				if ( data.minFilter !== undefined ) texture.minFilter = parseConstant( data.minFilter );
+				if ( data.magFilter !== undefined ) texture.magFilter = parseConstant( data.magFilter );
+				if ( data.anisotropy !== undefined ) texture.anisotropy = data.anisotropy;
+				if ( Array.isArray( data.wrap ) ) {
 
 					texture.wrapS = parseConstant( data.wrap[ 0 ] );
 					texture.wrapT = parseConstant( data.wrap[ 1 ] );
 
 				}
-
-				if ( data.minFilter !== undefined ) texture.minFilter = parseConstant( data.minFilter );
-				if ( data.magFilter !== undefined ) texture.magFilter = parseConstant( data.magFilter );
-				if ( data.anisotropy !== undefined ) texture.anisotropy = data.anisotropy;
-
-				if ( data.flipY !== undefined ) texture.flipY = data.flipY;
 
 				textures[ data.uuid ] = texture;
 
@@ -74288,10 +74223,6 @@ Object.assign( THREE.TextureLoader.prototype, {
 		loader.setPath( this.path );
 		loader.load( url, function ( image ) {
 
-			// JPEGs can't have an alpha channel, so memory can be saved by storing them as RGB.
-			var isJPEG = url.search( /\.(jpg|jpeg)$/ ) > 0 || url.search( /^data\:image\/jpeg/ ) === 0;
-
-			texture.format = isJPEG ? THREE.RGBFormat : THREE.RGBAFormat;
 			texture.image = image;
 			texture.needsUpdate = true;
 
@@ -76295,9 +76226,7 @@ THREE.Texture.prototype = {
 
 			minFilter: this.minFilter,
 			magFilter: this.magFilter,
-			anisotropy: this.anisotropy,
-
-			flipY: this.flipY
+			anisotropy: this.anisotropy
 		};
 
 		if ( this.image !== undefined ) {
@@ -78273,7 +78202,7 @@ THREE.ShaderChunk[ 'lights_physical_fragment' ] = "PhysicalMaterial material;\nm
 
 // File:src/renderers/shaders/ShaderChunk/lights_physical_pars_fragment.glsl
 
-THREE.ShaderChunk[ 'lights_physical_pars_fragment' ] = "struct PhysicalMaterial {\n	vec3	diffuseColor;\n	float	specularRoughness;\n	vec3	specularColor;\n	#ifndef STANDARD\n		float clearCoat;\n		float clearCoatRoughness;\n	#endif\n};\n#define MAXIMUM_SPECULAR_COEFFICIENT 0.16\n#define DEFAULT_SPECULAR_COEFFICIENT 0.04\nfloat clearCoatDHRApprox( const in float roughness, const in float dotNL ) {\n	return DEFAULT_SPECULAR_COEFFICIENT + ( 1.0 - DEFAULT_SPECULAR_COEFFICIENT ) * ( pow( 1.0 - dotNL, 5.0 ) * pow( 1.0 - roughness, 2.0 ) );\n}\nvoid RE_Direct_Physical( const in IncidentLight directLight, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {\n	float dotNL = saturate( dot( geometry.normal, directLight.direction ) );\n	vec3 irradiance = dotNL * directLight.color;\n	#ifndef PHYSICALLY_CORRECT_LIGHTS\n		irradiance *= PI;\n	#endif\n	#ifndef STANDARD\n		float clearCoatDHR = material.clearCoat * clearCoatDHRApprox( material.clearCoatRoughness, dotNL );\n	#else\n		float clearCoatDHR = 0.0;\n	#endif\n	reflectedLight.directSpecular += ( 1.0 - clearCoatDHR ) * irradiance * BRDF_Specular_GGX( directLight, geometry, material.specularColor, material.specularRoughness );\n	reflectedLight.directDiffuse += ( 1.0 - clearCoatDHR ) * irradiance * BRDF_Diffuse_Lambert( material.diffuseColor );\n	#ifndef STANDARD\n		reflectedLight.directSpecular += irradiance * material.clearCoat * BRDF_Specular_GGX( directLight, geometry, vec3( DEFAULT_SPECULAR_COEFFICIENT ), material.clearCoatRoughness );\n	#endif\n}\nvoid RE_IndirectDiffuse_Physical( const in vec3 irradiance, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {\n	reflectedLight.indirectDiffuse += irradiance * BRDF_Diffuse_Lambert( material.diffuseColor );\n}\nvoid RE_IndirectSpecular_Physical( const in vec3 radiance, const in vec3 clearCoatRadiance, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {\n	#ifndef STANDARD\n		float dotNV = saturate( dot( geometry.normal, geometry.viewDir ) );\n		float dotNL = dotNV;\n		float clearCoatDHR = material.clearCoat * clearCoatDHRApprox( material.clearCoatRoughness, dotNL );\n	#else\n		float clearCoatDHR = 0.0;\n	#endif\n	reflectedLight.indirectSpecular += ( 1.0 - clearCoatDHR ) * radiance * BRDF_Specular_GGX_Environment( geometry, material.specularColor, material.specularRoughness );\n	#ifndef STANDARD\n		reflectedLight.indirectSpecular += clearCoatRadiance * material.clearCoat * BRDF_Specular_GGX_Environment( geometry, vec3( DEFAULT_SPECULAR_COEFFICIENT ), material.clearCoatRoughness );\n	#endif\n}\n#define RE_Direct				RE_Direct_Physical\n#define RE_IndirectDiffuse		RE_IndirectDiffuse_Physical\n#define RE_IndirectSpecular		RE_IndirectSpecular_Physical\n#define Material_BlinnShininessExponent( material )   GGXRoughnessToBlinnExponent( material.specularRoughness )\n#define Material_ClearCoat_BlinnShininessExponent( material )   GGXRoughnessToBlinnExponent( material.clearCoatRoughness )\nfloat computeSpecularOcclusion( const in float dotNV, const in float ambientOcclusion, const in float roughness ) {\n	return saturate( pow( dotNV + ambientOcclusion, exp2( - 16.0 * roughness - 1.0 ) ) - 1.0 + ambientOcclusion );\n}\n";
+THREE.ShaderChunk[ 'lights_physical_pars_fragment' ] = "struct PhysicalMaterial {\n	vec3	diffuseColor;\n	float	specularRoughness;\n	vec3	specularColor;\n	#ifndef STANDARD\n		float clearCoat;\n		float clearCoatRoughness;\n	#endif\n};\n#define MAXIMUM_SPECULAR_COEFFICIENT 0.16\n#define DEFAULT_SPECULAR_COEFFICIENT 0.04\nvoid RE_Direct_Physical( const in IncidentLight directLight, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {\n	float dotNL = saturate( dot( geometry.normal, directLight.direction ) );\n	vec3 irradiance = dotNL * directLight.color;\n	#ifndef PHYSICALLY_CORRECT_LIGHTS\n		irradiance *= PI;\n	#endif\n	reflectedLight.directSpecular += irradiance * BRDF_Specular_GGX( directLight, geometry, material.specularColor, material.specularRoughness );\n	reflectedLight.directDiffuse += irradiance * BRDF_Diffuse_Lambert( material.diffuseColor );\n	#ifndef STANDARD\n		reflectedLight.directSpecular += irradiance * material.clearCoat * BRDF_Specular_GGX( directLight, geometry, vec3( DEFAULT_SPECULAR_COEFFICIENT ), material.clearCoatRoughness );\n	#endif\n}\nvoid RE_IndirectDiffuse_Physical( const in vec3 irradiance, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {\n	reflectedLight.indirectDiffuse += irradiance * BRDF_Diffuse_Lambert( material.diffuseColor );\n}\nvoid RE_IndirectSpecular_Physical( const in vec3 radiance, const in vec3 clearCoatRadiance, const in GeometricContext geometry, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {\n	reflectedLight.indirectSpecular += radiance * BRDF_Specular_GGX_Environment( geometry, material.specularColor, material.specularRoughness );\n	#ifndef STANDARD\n		reflectedLight.indirectSpecular += clearCoatRadiance * material.clearCoat * BRDF_Specular_GGX_Environment( geometry, vec3( DEFAULT_SPECULAR_COEFFICIENT ), material.clearCoatRoughness );\n	#endif\n}\n#define RE_Direct				RE_Direct_Physical\n#define RE_IndirectDiffuse		RE_IndirectDiffuse_Physical\n#define RE_IndirectSpecular		RE_IndirectSpecular_Physical\n#define Material_BlinnShininessExponent( material )   GGXRoughnessToBlinnExponent( material.specularRoughness )\n#define Material_ClearCoat_BlinnShininessExponent( material )   GGXRoughnessToBlinnExponent( material.clearCoatRoughness )\nfloat computeSpecularOcclusion( const in float dotNV, const in float ambientOcclusion, const in float roughness ) {\n	return saturate( pow( dotNV + ambientOcclusion, exp2( - 16.0 * roughness - 1.0 ) ) - 1.0 + ambientOcclusion );\n}\n";
 
 // File:src/renderers/shaders/ShaderChunk/lights_template.glsl
 
@@ -78671,11 +78600,11 @@ THREE.UniformsLib = {
 
 // File:src/renderers/shaders/ShaderLib/cube_frag.glsl
 
-THREE.ShaderChunk[ 'cube_frag' ] = "uniform samplerCube tCube;\nuniform float tFlip;\nuniform float opacity;\nvarying vec3 vWorldPosition;\n#include <common>\nvoid main() {\n	gl_FragColor = textureCube( tCube, vec3( tFlip * vWorldPosition.x, vWorldPosition.yz ) );\n	gl_FragColor.a *= opacity;\n}\n";
+THREE.ShaderChunk[ 'cube_frag' ] = "uniform samplerCube tCube;\nuniform float tFlip;\nvarying vec3 vWorldPosition;\n#include <common>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\nvoid main() {\n	#include <clipping_planes_fragment>\n	gl_FragColor = textureCube( tCube, vec3( tFlip * vWorldPosition.x, vWorldPosition.yz ) );\n	#include <logdepthbuf_fragment>\n}\n";
 
 // File:src/renderers/shaders/ShaderLib/cube_vert.glsl
 
-THREE.ShaderChunk[ 'cube_vert' ] = "varying vec3 vWorldPosition;\n#include <common>\nvoid main() {\n	vWorldPosition = transformDirection( position, modelMatrix );\n	#include <begin_vertex>\n	#include <project_vertex>\n}\n";
+THREE.ShaderChunk[ 'cube_vert' ] = "varying vec3 vWorldPosition;\n#include <common>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\nvoid main() {\n	vWorldPosition = transformDirection( position, modelMatrix );\n	#include <begin_vertex>\n	#include <project_vertex>\n	#include <logdepthbuf_vertex>\n	#include <clipping_planes_vertex>\n}\n";
 
 // File:src/renderers/shaders/ShaderLib/depth_frag.glsl
 
@@ -78695,11 +78624,11 @@ THREE.ShaderChunk[ 'distanceRGBA_vert' ] = "varying vec4 vWorldPosition;\n#inclu
 
 // File:src/renderers/shaders/ShaderLib/equirect_frag.glsl
 
-THREE.ShaderChunk[ 'equirect_frag' ] = "uniform sampler2D tEquirect;\nuniform float tFlip;\nvarying vec3 vWorldPosition;\n#include <common>\nvoid main() {\n	vec3 direction = normalize( vWorldPosition );\n	vec2 sampleUV;\n	sampleUV.y = saturate( tFlip * direction.y * -0.5 + 0.5 );\n	sampleUV.x = atan( direction.z, direction.x ) * RECIPROCAL_PI2 + 0.5;\n	gl_FragColor = texture2D( tEquirect, sampleUV );\n}\n";
+THREE.ShaderChunk[ 'equirect_frag' ] = "uniform sampler2D tEquirect;\nuniform float tFlip;\nvarying vec3 vWorldPosition;\n#include <common>\n#include <logdepthbuf_pars_fragment>\n#include <clipping_planes_pars_fragment>\nvoid main() {\n	#include <clipping_planes_fragment>\n	vec3 direction = normalize( vWorldPosition );\n	vec2 sampleUV;\n	sampleUV.y = saturate( tFlip * direction.y * -0.5 + 0.5 );\n	sampleUV.x = atan( direction.z, direction.x ) * RECIPROCAL_PI2 + 0.5;\n	gl_FragColor = texture2D( tEquirect, sampleUV );\n	#include <logdepthbuf_fragment>\n}\n";
 
 // File:src/renderers/shaders/ShaderLib/equirect_vert.glsl
 
-THREE.ShaderChunk[ 'equirect_vert' ] = "varying vec3 vWorldPosition;\n#include <common>\nvoid main() {\n	vWorldPosition = transformDirection( position, modelMatrix );\n	#include <begin_vertex>\n	#include <project_vertex>\n}\n";
+THREE.ShaderChunk[ 'equirect_vert' ] = "varying vec3 vWorldPosition;\n#include <common>\n#include <logdepthbuf_pars_vertex>\n#include <clipping_planes_pars_vertex>\nvoid main() {\n	vWorldPosition = transformDirection( position, modelMatrix );\n	#include <begin_vertex>\n	#include <project_vertex>\n	#include <logdepthbuf_vertex>\n	#include <clipping_planes_vertex>\n}\n";
 
 // File:src/renderers/shaders/ShaderLib/linedashed_frag.glsl
 
@@ -78941,8 +78870,7 @@ THREE.ShaderLib = {
 
 		uniforms: {
 			"tCube": { value: null },
-			"tFlip": { value: - 1 },
-			"opacity": { value: 1.0 }
+			"tFlip": { value: - 1 }
 		},
 
 		vertexShader: THREE.ShaderChunk[ 'cube_vert' ],
@@ -79268,7 +79196,7 @@ THREE.WebGLRenderer = function ( parameters ) {
 	var backgroundCamera2 = new THREE.PerspectiveCamera();
 	var backgroundPlaneMesh = new THREE.Mesh(
 		new THREE.PlaneBufferGeometry( 2, 2 ),
-		new THREE.MeshBasicMaterial( { depthTest: false, depthWrite: false, fog: false } )
+		new THREE.MeshBasicMaterial( { depthTest: false, depthWrite: false } )
 	);
 	var backgroundBoxShader = THREE.ShaderLib[ 'cube' ];
 	var backgroundBoxMesh = new THREE.Mesh(
@@ -79277,12 +79205,13 @@ THREE.WebGLRenderer = function ( parameters ) {
 			uniforms: backgroundBoxShader.uniforms,
 			vertexShader: backgroundBoxShader.vertexShader,
 			fragmentShader: backgroundBoxShader.fragmentShader,
-			side: THREE.BackSide,
 			depthTest: false,
 			depthWrite: false,
-			fog: false
+			side: THREE.BackSide
 		} )
 	);
+	objects.update( backgroundPlaneMesh );
+	objects.update( backgroundBoxMesh );
 
 	//
 
@@ -79337,7 +79266,7 @@ THREE.WebGLRenderer = function ( parameters ) {
 
 	// shadow map
 
-	var shadowMap = new THREE.WebGLShadowMap( this, _lights, objects, capabilities );
+	var shadowMap = new THREE.WebGLShadowMap( this, _lights, objects );
 
 	this.shadowMap = shadowMap;
 
@@ -80044,10 +79973,6 @@ THREE.WebGLRenderer = function ( parameters ) {
 
 			return a.object.renderOrder - b.object.renderOrder;
 
-		} else if ( a.material.program && b.material.program && a.material.program !== b.material.program ) {
-
-			return a.material.program.id - b.material.program.id;
-
 		} else if ( a.material.id !== b.material.id ) {
 
 			return a.material.id - b.material.id;
@@ -80194,15 +80119,11 @@ THREE.WebGLRenderer = function ( parameters ) {
 			backgroundBoxMesh.material.uniforms[ "tCube" ].value = background;
 			backgroundBoxMesh.modelViewMatrix.multiplyMatrices( backgroundCamera2.matrixWorldInverse, backgroundBoxMesh.matrixWorld );
 
-			objects.update( backgroundBoxMesh );
-
 			_this.renderBufferDirect( backgroundCamera2, null, backgroundBoxMesh.geometry, backgroundBoxMesh.material, backgroundBoxMesh, null );
 
 		} else if ( background instanceof THREE.Texture ) {
 
 			backgroundPlaneMesh.material.map = background;
-
-			objects.update( backgroundPlaneMesh );
 
 			_this.renderBufferDirect( backgroundCamera, null, backgroundPlaneMesh.geometry, backgroundPlaneMesh.material, backgroundPlaneMesh, null );
 
@@ -83599,7 +83520,7 @@ THREE.WebGLPrograms = function ( renderer, capabilities ) {
 
 			vertexColors: material.vertexColors,
 
-			fog: !! fog,
+			fog: fog,
 			useFog: material.fog,
 			fogExp: fog instanceof THREE.FogExp2,
 
@@ -83825,7 +83746,7 @@ THREE.WebGLShader = ( function () {
  * @author mrdoob / http://mrdoob.com/
  */
 
-THREE.WebGLShadowMap = function ( _renderer, _lights, _objects, capabilities ) {
+THREE.WebGLShadowMap = function ( _renderer, _lights, _objects ) {
 
 	var _gl = _renderer.context,
 	_state = _renderer.state,
@@ -83835,7 +83756,6 @@ THREE.WebGLShadowMap = function ( _renderer, _lights, _objects, capabilities ) {
 	_lightShadows = _lights.shadows,
 
 	_shadowMapSize = new THREE.Vector2(),
-	_maxShadowMapSize = new THREE.Vector2( capabilities.maxTextureSize, capabilities.maxTextureSize ),
 
 	_lookTarget = new THREE.Vector3(),
 	_lightPositionWorld = new THREE.Vector3(),
@@ -83949,7 +83869,6 @@ THREE.WebGLShadowMap = function ( _renderer, _lights, _objects, capabilities ) {
 			var shadowCamera = shadow.camera;
 
 			_shadowMapSize.copy( shadow.mapSize );
-			_shadowMapSize.min( _maxShadowMapSize );
 
 			if ( light instanceof THREE.PointLight ) {
 
@@ -84136,21 +84055,8 @@ THREE.WebGLShadowMap = function ( _renderer, _lights, _objects, capabilities ) {
 
 		if ( ! customMaterial ) {
 
-			var useMorphing = false;
-
-			if ( material.morphTargets ) {
-
-				if ( geometry instanceof THREE.BufferGeometry ) {
-
-					useMorphing = geometry.morphAttributes && geometry.morphAttributes.position && geometry.morphAttributes.position.length > 0;
-
-				} else if ( geometry instanceof THREE.Geometry ) {
-
-					useMorphing = geometry.morphTargets && geometry.morphTargets.length > 0;
-
-				}
-
-			}
+			var useMorphing = geometry.morphTargets !== undefined &&
+					geometry.morphTargets.length > 0 && material.morphTargets;
 
 			var useSkinning = object instanceof THREE.SkinnedMesh && material.skinning;
 
@@ -87100,8 +87006,6 @@ THREE.SpritePlugin = function ( renderer, sprites ) {
 			var sprite = sprites[ i ];
 			var material = sprite.material;
 
-			if ( material.visible === false ) continue;
-
 			gl.uniform1f( uniforms.alphaTest, material.alphaTest );
 			gl.uniformMatrix4fv( uniforms.modelViewMatrix, false, sprite.modelViewMatrix.elements );
 
@@ -87277,7 +87181,7 @@ THREE.SpritePlugin = function ( renderer, sprites ) {
 	}
 
 	function painterSortStable ( a, b ) {
-
+		
 		if ( a.renderOrder !== b.renderOrder ) {
 
 			return a.renderOrder - b.renderOrder;
@@ -88356,21 +88260,6 @@ THREE.ShapeUtils = {
 
 	triangulateShape: function ( contour, holes ) {
 
-		function removeDupEndPts(points) {
-
-			var l = points.length;
-
-			if ( l > 2 && points[ l - 1 ].equals( points[ 0 ] ) ) {
-
-				points.pop();
-
-			}
-
-		}
-
-		removeDupEndPts( contour );
-		holes.forEach( removeDupEndPts );
-
 		function point_in_segment_2D_colin( inSegPt1, inSegPt2, inOtherPt ) {
 
 			// inOtherPt needs to be collinear to the inSegment
@@ -88808,7 +88697,7 @@ THREE.ShapeUtils = {
 
 			if ( allPointsMap[ key ] !== undefined ) {
 
-				console.warn( "THREE.ShapeUtils: Duplicate point", key, i );
+				console.warn( "THREE.Shape: Duplicate point", key );
 
 			}
 
@@ -89000,15 +88889,15 @@ THREE.Curve.prototype = {
 
 		if ( ! divisions ) divisions = 5;
 
-		var points = [];
+		var d, pts = [];
 
-		for ( var d = 0; d <= divisions; d ++ ) {
+		for ( d = 0; d <= divisions; d ++ ) {
 
-			points.push( this.getPoint( d / divisions ) );
+			pts.push( this.getPoint( d / divisions ) );
 
 		}
 
-		return points;
+		return pts;
 
 	},
 
@@ -89018,15 +88907,15 @@ THREE.Curve.prototype = {
 
 		if ( ! divisions ) divisions = 5;
 
-		var points = [];
+		var d, pts = [];
 
-		for ( var d = 0; d <= divisions; d ++ ) {
+		for ( d = 0; d <= divisions; d ++ ) {
 
-			points.push( this.getPointAt( d / divisions ) );
+			pts.push( this.getPointAt( d / divisions ) );
 
 		}
 
-		return points;
+		return pts;
 
 	},
 
@@ -89248,6 +89137,8 @@ THREE.CurvePath.prototype = Object.assign( Object.create( THREE.Curve.prototype 
 
 	closePath: function () {
 
+		// TODO Test
+		// and verify for vector3 (needs to implement equals)
 		// Add a line curve if start and end of lines are not connected
 		var startPoint = this.curves[ 0 ].getPoint( 0 );
 		var endPoint = this.curves[ this.curves.length - 1 ].getPoint( 1 );
@@ -89284,8 +89175,7 @@ THREE.CurvePath.prototype = Object.assign( Object.create( THREE.Curve.prototype 
 				var diff = curveLengths[ i ] - d;
 				var curve = this.curves[ i ];
 
-				var segmentLength = curve.getLength();
-				var u = segmentLength === 0 ? 0 : 1 - diff / segmentLength;
+				var u = 1 - diff / curve.getLength();
 
 				return curve.getPointAt( u );
 
@@ -89349,67 +89239,6 @@ THREE.CurvePath.prototype = Object.assign( Object.create( THREE.Curve.prototype 
 		this.cacheLengths = lengths;
 
 		return lengths;
-
-	},
-
-	getSpacedPoints: function ( divisions ) {
-
-		if ( ! divisions ) divisions = 40;
-
-		var points = [];
-
-		for ( var i = 0; i <= divisions; i ++ ) {
-
-			points.push( this.getPoint( i / divisions ) );
-
-		}
-
-		if ( this.autoClose ) {
-
-			points.push( points[ 0 ] );
-
-		}
-
-		return points;
-
-	},
-
-	getPoints: function ( divisions ) {
-
-		divisions = divisions || 12;
-
-		var points = [], last;
-
-		for ( var i = 0, curves = this.curves; i < curves.length; i ++ ) {
-
-			var curve = curves[ i ];
-			var resolution = curve instanceof THREE.EllipseCurve ? divisions * 2
-				: curve instanceof THREE.LineCurve ? 1
-				: curve instanceof THREE.SplineCurve ? divisions * curve.points.length
-				: divisions;
-
-			var pts = curve.getPoints( resolution );
-
-			for ( var j = 0; j < pts.length; j++ ) {
-
-				var point = pts[ j ];
-
-				if ( last && last.equals( point ) ) continue; // ensures no consecutive points are duplicates
-
-				points.push( point );
-				last = point;
-
-			}
-
-		}
-
-		if ( this.autoClose && points.length > 1 && !points[ points.length - 1 ].equals( points[ 0 ] ) ) {
-
-			points.push( points[ 0 ] );
-
-		}
-
-		return points;
 
 	},
 
@@ -89496,7 +89325,7 @@ Object.assign( THREE.Font.prototype, {
 
 			if ( ! glyph ) return;
 
-			var path = new THREE.ShapePath();
+			var path = new THREE.Path();
 
 			var pts = [], b2 = THREE.ShapeUtils.b2, b3 = THREE.ShapeUtils.b3;
 			var x, y, cpx, cpy, cpx0, cpy0, cpx1, cpy1, cpx2, cpy2, laste;
@@ -89630,7 +89459,8 @@ Object.assign( THREE.Font.prototype, {
 THREE.Path = function ( points ) {
 
 	THREE.CurvePath.call( this );
-	this.currentPoint = new THREE.Vector2();
+
+	this.actions = [];
 
 	if ( points ) {
 
@@ -89644,8 +89474,11 @@ THREE.Path.prototype = Object.assign( Object.create( THREE.CurvePath.prototype )
 
 	constructor: THREE.Path,
 
+	// TODO Clean up PATH API
+
 	// Create path using straight lines to connect all points
 	// - vectors: array of Vector2
+
 	fromPoints: function ( vectors ) {
 
 		this.moveTo( vectors[ 0 ].x, vectors[ 0 ].y );
@@ -89660,37 +89493,52 @@ THREE.Path.prototype = Object.assign( Object.create( THREE.CurvePath.prototype )
 
 	moveTo: function ( x, y ) {
 
-		this.currentPoint.set( x, y ); // TODO consider referencing vectors instead of copying?
+		this.actions.push( { action: 'moveTo', args: [ x, y ] } );
 
 	},
 
 	lineTo: function ( x, y ) {
 
-		var curve = new THREE.LineCurve( this.currentPoint.clone(), new THREE.Vector2( x, y ) );
+		var lastargs = this.actions[ this.actions.length - 1 ].args;
+
+		var x0 = lastargs[ lastargs.length - 2 ];
+		var y0 = lastargs[ lastargs.length - 1 ];
+
+		var curve = new THREE.LineCurve( new THREE.Vector2( x0, y0 ), new THREE.Vector2( x, y ) );
 		this.curves.push( curve );
 
-		this.currentPoint.set( x, y );
+		this.actions.push( { action: 'lineTo', args: [ x, y ] } );
 
 	},
 
 	quadraticCurveTo: function ( aCPx, aCPy, aX, aY ) {
 
+		var lastargs = this.actions[ this.actions.length - 1 ].args;
+
+		var x0 = lastargs[ lastargs.length - 2 ];
+		var y0 = lastargs[ lastargs.length - 1 ];
+
 		var curve = new THREE.QuadraticBezierCurve(
-			this.currentPoint.clone(),
+			new THREE.Vector2( x0, y0 ),
 			new THREE.Vector2( aCPx, aCPy ),
 			new THREE.Vector2( aX, aY )
 		);
 
 		this.curves.push( curve );
 
-		this.currentPoint.set( aX, aY );
+		this.actions.push( { action: 'quadraticCurveTo', args: [ aCPx, aCPy, aX, aY ] } );
 
 	},
 
 	bezierCurveTo: function ( aCP1x, aCP1y, aCP2x, aCP2y, aX, aY ) {
 
+		var lastargs = this.actions[ this.actions.length - 1 ].args;
+
+		var x0 = lastargs[ lastargs.length - 2 ];
+		var y0 = lastargs[ lastargs.length - 1 ];
+
 		var curve = new THREE.CubicBezierCurve(
-			this.currentPoint.clone(),
+			new THREE.Vector2( x0, y0 ),
 			new THREE.Vector2( aCP1x, aCP1y ),
 			new THREE.Vector2( aCP2x, aCP2y ),
 			new THREE.Vector2( aX, aY )
@@ -89698,25 +89546,38 @@ THREE.Path.prototype = Object.assign( Object.create( THREE.CurvePath.prototype )
 
 		this.curves.push( curve );
 
-		this.currentPoint.set( aX, aY );
+		this.actions.push( { action: 'bezierCurveTo', args: [ aCP1x, aCP1y, aCP2x, aCP2y, aX, aY ] } );
 
 	},
 
 	splineThru: function ( pts /*Array of Vector*/ ) {
 
-		var npts = [ this.currentPoint.clone() ].concat( pts );
+		var args = Array.prototype.slice.call( arguments );
+
+		var lastargs = this.actions[ this.actions.length - 1 ].args;
+
+		var x0 = lastargs[ lastargs.length - 2 ];
+		var y0 = lastargs[ lastargs.length - 1 ];
+
+		var npts = [ new THREE.Vector2( x0, y0 ) ];
+		Array.prototype.push.apply( npts, pts );
 
 		var curve = new THREE.SplineCurve( npts );
 		this.curves.push( curve );
 
-		this.currentPoint.copy( pts[ pts.length - 1 ] );
+		var lastPoint = pts[ pts.length - 1 ];
+		args.push( lastPoint.x );
+		args.push( lastPoint.y );
+
+		this.actions.push( { action: 'splineThru', args: args } );
 
 	},
 
 	arc: function ( aX, aY, aRadius, aStartAngle, aEndAngle, aClockwise ) {
 
-		var x0 = this.currentPoint.x;
-		var y0 = this.currentPoint.y;
+		var lastargs = this.actions[ this.actions.length - 1 ].args;
+		var x0 = lastargs[ lastargs.length - 2 ];
+		var y0 = lastargs[ lastargs.length - 1 ];
 
 		this.absarc( aX + x0, aY + y0, aRadius,
 			aStartAngle, aEndAngle, aClockwise );
@@ -89731,8 +89592,9 @@ THREE.Path.prototype = Object.assign( Object.create( THREE.CurvePath.prototype )
 
 	ellipse: function ( aX, aY, xRadius, yRadius, aStartAngle, aEndAngle, aClockwise, aRotation ) {
 
-		var x0 = this.currentPoint.x;
-		var y0 = this.currentPoint.y;
+		var lastargs = this.actions[ this.actions.length - 1 ].args;
+		var x0 = lastargs[ lastargs.length - 2 ];
+		var y0 = lastargs[ lastargs.length - 1 ];
 
 		this.absellipse( aX + x0, aY + y0, xRadius, yRadius, aStartAngle, aEndAngle, aClockwise, aRotation );
 
@@ -89740,57 +89602,335 @@ THREE.Path.prototype = Object.assign( Object.create( THREE.CurvePath.prototype )
 
 	absellipse: function ( aX, aY, xRadius, yRadius, aStartAngle, aEndAngle, aClockwise, aRotation ) {
 
+		var args = [
+			aX, aY,
+			xRadius, yRadius,
+			aStartAngle, aEndAngle,
+			aClockwise,
+			aRotation || 0 // aRotation is optional.
+		];
+
 		var curve = new THREE.EllipseCurve( aX, aY, xRadius, yRadius, aStartAngle, aEndAngle, aClockwise, aRotation );
-
-		if ( this.curves.length > 0 ) {
-
-			// if a previous curve is present, attempt to join
-			var firstPoint = curve.getPoint( 0 );
-
-			if ( ! firstPoint.equals( this.currentPoint ) ) {
-
-				this.lineTo( firstPoint.x, firstPoint.y );
-
-			}
-
-		}
-
 		this.curves.push( curve );
 
 		var lastPoint = curve.getPoint( 1 );
-		this.currentPoint.copy( lastPoint );
+		args.push( lastPoint.x );
+		args.push( lastPoint.y );
 
-	}
+		this.actions.push( { action: 'ellipse', args: args } );
 
-} );
-
-
-// minimal class for proxing functions to Path. Replaces old "extractSubpaths()"
-THREE.ShapePath = function() {
-	this.subPaths = [];
-	this.currentPath = null;
-}
-
-THREE.ShapePath.prototype = {
-	moveTo: function ( x, y ) {
-		this.currentPath = new THREE.Path();
-		this.subPaths.push(this.currentPath);
-		this.currentPath.moveTo( x, y );
 	},
-	lineTo: function ( x, y ) {
-		this.currentPath.lineTo( x, y );
+
+	getSpacedPoints: function ( divisions ) {
+
+		if ( ! divisions ) divisions = 40;
+
+		var points = [];
+
+		for ( var i = 0; i < divisions; i ++ ) {
+
+			points.push( this.getPoint( i / divisions ) );
+
+			//if ( !this.getPoint( i / divisions ) ) throw "DIE";
+
+		}
+
+		if ( this.autoClose ) {
+
+			points.push( points[ 0 ] );
+
+		}
+
+		return points;
+
 	},
-	quadraticCurveTo: function ( aCPx, aCPy, aX, aY ) {
-		this.currentPath.quadraticCurveTo( aCPx, aCPy, aX, aY );
-	},
-	bezierCurveTo: function ( aCP1x, aCP1y, aCP2x, aCP2y, aX, aY ) {
-		this.currentPath.bezierCurveTo( aCP1x, aCP1y, aCP2x, aCP2y, aX, aY );
-	},
-	splineThru: function ( pts ) {
-		this.currentPath.splineThru( pts );
+
+	getPoints: function ( divisions ) {
+
+		divisions = divisions || 12;
+
+		var b2 = THREE.ShapeUtils.b2;
+		var b3 = THREE.ShapeUtils.b3;
+
+		var points = [];
+
+		var cpx, cpy, cpx2, cpy2, cpx1, cpy1, cpx0, cpy0,
+			laste, tx, ty;
+
+		for ( var i = 0, l = this.actions.length; i < l; i ++ ) {
+
+			var item = this.actions[ i ];
+
+			var action = item.action;
+			var args = item.args;
+
+			switch ( action ) {
+
+			case 'moveTo':
+
+				points.push( new THREE.Vector2( args[ 0 ], args[ 1 ] ) );
+
+				break;
+
+			case 'lineTo':
+
+				points.push( new THREE.Vector2( args[ 0 ], args[ 1 ] ) );
+
+				break;
+
+			case 'quadraticCurveTo':
+
+				cpx  = args[ 2 ];
+				cpy  = args[ 3 ];
+
+				cpx1 = args[ 0 ];
+				cpy1 = args[ 1 ];
+
+				if ( points.length > 0 ) {
+
+					laste = points[ points.length - 1 ];
+
+					cpx0 = laste.x;
+					cpy0 = laste.y;
+
+				} else {
+
+					laste = this.actions[ i - 1 ].args;
+
+					cpx0 = laste[ laste.length - 2 ];
+					cpy0 = laste[ laste.length - 1 ];
+
+				}
+
+				for ( var j = 1; j <= divisions; j ++ ) {
+
+					var t = j / divisions;
+
+					tx = b2( t, cpx0, cpx1, cpx );
+					ty = b2( t, cpy0, cpy1, cpy );
+
+					points.push( new THREE.Vector2( tx, ty ) );
+
+				}
+
+				break;
+
+			case 'bezierCurveTo':
+
+				cpx  = args[ 4 ];
+				cpy  = args[ 5 ];
+
+				cpx1 = args[ 0 ];
+				cpy1 = args[ 1 ];
+
+				cpx2 = args[ 2 ];
+				cpy2 = args[ 3 ];
+
+				if ( points.length > 0 ) {
+
+					laste = points[ points.length - 1 ];
+
+					cpx0 = laste.x;
+					cpy0 = laste.y;
+
+				} else {
+
+					laste = this.actions[ i - 1 ].args;
+
+					cpx0 = laste[ laste.length - 2 ];
+					cpy0 = laste[ laste.length - 1 ];
+
+				}
+
+
+				for ( var j = 1; j <= divisions; j ++ ) {
+
+					var t = j / divisions;
+
+					tx = b3( t, cpx0, cpx1, cpx2, cpx );
+					ty = b3( t, cpy0, cpy1, cpy2, cpy );
+
+					points.push( new THREE.Vector2( tx, ty ) );
+
+				}
+
+				break;
+
+			case 'splineThru':
+
+				laste = this.actions[ i - 1 ].args;
+
+				var last = new THREE.Vector2( laste[ laste.length - 2 ], laste[ laste.length - 1 ] );
+				var spts = [ last ];
+
+				var n = divisions * args[ 0 ].length;
+
+				spts = spts.concat( args[ 0 ] );
+
+				var spline = new THREE.SplineCurve( spts );
+
+				for ( var j = 1; j <= n; j ++ ) {
+
+					points.push( spline.getPointAt( j / n ) );
+
+				}
+
+				break;
+
+			case 'arc':
+
+				var aX = args[ 0 ], aY = args[ 1 ],
+					aRadius = args[ 2 ],
+					aStartAngle = args[ 3 ], aEndAngle = args[ 4 ],
+					aClockwise = !! args[ 5 ];
+
+				var deltaAngle = aEndAngle - aStartAngle;
+				var angle;
+				var tdivisions = divisions * 2;
+
+				for ( var j = 1; j <= tdivisions; j ++ ) {
+
+					var t = j / tdivisions;
+
+					if ( ! aClockwise ) {
+
+						t = 1 - t;
+
+					}
+
+					angle = aStartAngle + t * deltaAngle;
+
+					tx = aX + aRadius * Math.cos( angle );
+					ty = aY + aRadius * Math.sin( angle );
+
+					//console.log('t', t, 'angle', angle, 'tx', tx, 'ty', ty);
+
+					points.push( new THREE.Vector2( tx, ty ) );
+
+				}
+
+				//console.log(points);
+
+				break;
+
+			case 'ellipse':
+
+				var aX = args[ 0 ], aY = args[ 1 ],
+					xRadius = args[ 2 ],
+					yRadius = args[ 3 ],
+					aStartAngle = args[ 4 ], aEndAngle = args[ 5 ],
+					aClockwise = !! args[ 6 ],
+					aRotation = args[ 7 ];
+
+
+				var deltaAngle = aEndAngle - aStartAngle;
+				var angle;
+				var tdivisions = divisions * 2;
+
+				var cos, sin;
+				if ( aRotation !== 0 ) {
+
+					cos = Math.cos( aRotation );
+					sin = Math.sin( aRotation );
+
+				}
+
+				for ( var j = 1; j <= tdivisions; j ++ ) {
+
+					var t = j / tdivisions;
+
+					if ( ! aClockwise ) {
+
+						t = 1 - t;
+
+					}
+
+					angle = aStartAngle + t * deltaAngle;
+
+					tx = aX + xRadius * Math.cos( angle );
+					ty = aY + yRadius * Math.sin( angle );
+
+					if ( aRotation !== 0 ) {
+
+						var x = tx, y = ty;
+
+						// Rotate the point about the center of the ellipse.
+						tx = ( x - aX ) * cos - ( y - aY ) * sin + aX;
+						ty = ( x - aX ) * sin + ( y - aY ) * cos + aY;
+
+					}
+
+					//console.log('t', t, 'angle', angle, 'tx', tx, 'ty', ty);
+
+					points.push( new THREE.Vector2( tx, ty ) );
+
+				}
+
+				//console.log(points);
+
+				break;
+
+			} // end switch
+
+		}
+
+
+
+		// Normalize to remove the closing point by default.
+		var lastPoint = points[ points.length - 1 ];
+		if ( Math.abs( lastPoint.x - points[ 0 ].x ) < Number.EPSILON &&
+				 Math.abs( lastPoint.y - points[ 0 ].y ) < Number.EPSILON )
+			points.splice( points.length - 1, 1 );
+
+		if ( this.autoClose ) {
+
+			points.push( points[ 0 ] );
+
+		}
+
+		return points;
+
 	},
 
 	toShapes: function ( isCCW, noHoles ) {
+
+		function extractSubpaths( inActions ) {
+
+			var subPaths = [], lastPath = new THREE.Path();
+
+			for ( var i = 0, l = inActions.length; i < l; i ++ ) {
+
+				var item = inActions[ i ];
+
+				var args = item.args;
+				var action = item.action;
+
+				if ( action === 'moveTo' ) {
+
+					if ( lastPath.actions.length !== 0 ) {
+
+						subPaths.push( lastPath );
+						lastPath = new THREE.Path();
+
+					}
+
+				}
+
+				lastPath[ action ].apply( lastPath, args );
+
+			}
+
+			if ( lastPath.actions.length !== 0 ) {
+
+				subPaths.push( lastPath );
+
+			}
+
+			// console.log(subPaths);
+
+			return	subPaths;
+
+		}
 
 		function toShapesNoHoles( inSubpaths ) {
 
@@ -89801,11 +89941,14 @@ THREE.ShapePath.prototype = {
 				var tmpPath = inSubpaths[ i ];
 
 				var tmpShape = new THREE.Shape();
+				tmpShape.actions = tmpPath.actions;
 				tmpShape.curves = tmpPath.curves;
 
 				shapes.push( tmpShape );
 
 			}
+
+			//console.log("shape", shapes);
 
 			return shapes;
 
@@ -89872,7 +90015,7 @@ THREE.ShapePath.prototype = {
 
 		var isClockWise = THREE.ShapeUtils.isClockWise;
 
-		var subPaths = this.subPaths;
+		var subPaths = extractSubpaths( this.actions );
 		if ( subPaths.length === 0 ) return [];
 
 		if ( noHoles === true )	return	toShapesNoHoles( subPaths );
@@ -89884,6 +90027,7 @@ THREE.ShapePath.prototype = {
 
 			tmpPath = subPaths[ 0 ];
 			tmpShape = new THREE.Shape();
+			tmpShape.actions = tmpPath.actions;
 			tmpShape.curves = tmpPath.curves;
 			shapes.push( tmpShape );
 			return shapes;
@@ -89916,6 +90060,7 @@ THREE.ShapePath.prototype = {
 				if ( ( ! holesFirst ) && ( newShapes[ mainIdx ] ) )	mainIdx ++;
 
 				newShapes[ mainIdx ] = { s: new THREE.Shape(), p: tmpPoints };
+				newShapes[ mainIdx ].s.actions = tmpPath.actions;
 				newShapes[ mainIdx ].s.curves = tmpPath.curves;
 
 				if ( holesFirst )	mainIdx ++;
@@ -90016,7 +90161,8 @@ THREE.ShapePath.prototype = {
 		return shapes;
 
 	}
-}
+
+} );
 
 // File:src/extras/core/Shape.js
 
@@ -90111,12 +90257,6 @@ THREE.LineCurve.prototype = Object.create( THREE.Curve.prototype );
 THREE.LineCurve.prototype.constructor = THREE.LineCurve;
 
 THREE.LineCurve.prototype.getPoint = function ( t ) {
-
-	if ( t === 1 ) {
-
-		return this.v2.clone();
-
-	}
 
 	var point = this.v2.clone().sub( this.v1 );
 	point.multiplyScalar( t ).add( this.v1 );
@@ -90266,7 +90406,7 @@ THREE.SplineCurve.prototype.getPoint = function ( t ) {
  *	Ellipse curve
  **************************************************************/
 
-THREE.EllipseCurve = function( aX, aY, xRadius, yRadius, aStartAngle, aEndAngle, aClockwise, aRotation ) {
+THREE.EllipseCurve = function ( aX, aY, xRadius, yRadius, aStartAngle, aEndAngle, aClockwise, aRotation ) {
 
 	this.aX = aX;
 	this.aY = aY;
@@ -90278,7 +90418,7 @@ THREE.EllipseCurve = function( aX, aY, xRadius, yRadius, aStartAngle, aEndAngle,
 	this.aEndAngle = aEndAngle;
 
 	this.aClockwise = aClockwise;
-
+	
 	this.aRotation = aRotation || 0;
 
 };
@@ -90286,45 +90426,25 @@ THREE.EllipseCurve = function( aX, aY, xRadius, yRadius, aStartAngle, aEndAngle,
 THREE.EllipseCurve.prototype = Object.create( THREE.Curve.prototype );
 THREE.EllipseCurve.prototype.constructor = THREE.EllipseCurve;
 
-THREE.EllipseCurve.prototype.getPoint = function( t ) {
+THREE.EllipseCurve.prototype.getPoint = function ( t ) {
 
-	var twoPi = Math.PI * 2;
 	var deltaAngle = this.aEndAngle - this.aStartAngle;
-	var samePoints = Math.abs( deltaAngle ) < Number.EPSILON;
 
-	// ensures that deltaAngle is 0 .. 2 PI
-	while ( deltaAngle < 0 ) deltaAngle += twoPi;
-	while ( deltaAngle > twoPi ) deltaAngle -= twoPi;
+	if ( deltaAngle < 0 ) deltaAngle += Math.PI * 2;
+	if ( deltaAngle > Math.PI * 2 ) deltaAngle -= Math.PI * 2;
 
-	if ( deltaAngle < Number.EPSILON ) {
+	var angle;
 
-		if ( samePoints ) {
+	if ( this.aClockwise === true ) {
 
-			deltaAngle = 0;
+		angle = this.aEndAngle + ( 1 - t ) * ( Math.PI * 2 - deltaAngle );
 
-		} else {
+	} else {
 
-			deltaAngle = twoPi;
-
-		}
+		angle = this.aStartAngle + t * deltaAngle;
 
 	}
-
-	if ( this.aClockwise === true && ! samePoints ) {
-
-		if ( deltaAngle === twoPi ) {
-
-			deltaAngle = - twoPi;
-
-		} else {
-
-			deltaAngle = deltaAngle - twoPi;
-
-		}
-
-	}
-
-	var angle = this.aStartAngle + t * deltaAngle;
+	
 	var x = this.aX + this.xRadius * Math.cos( angle );
 	var y = this.aY + this.yRadius * Math.sin( angle );
 
@@ -90333,12 +90453,11 @@ THREE.EllipseCurve.prototype.getPoint = function( t ) {
 		var cos = Math.cos( this.aRotation );
 		var sin = Math.sin( this.aRotation );
 
-		var tx = x - this.aX;
-		var ty = y - this.aY;
+		var tx = x, ty = y;
 
 		// Rotate the point about the center of the ellipse.
-		x = tx * cos - ty * sin + this.aX;
-		y = tx * sin + ty * cos + this.aY;
+		x = ( tx - this.aX ) * cos - ( ty - this.aY ) * sin + this.aX;
+		y = ( tx - this.aX ) * sin + ( ty - this.aY ) * cos + this.aY;
 
 	}
 
@@ -90377,12 +90496,6 @@ THREE.LineCurve3 = THREE.Curve.create(
 	},
 
 	function ( t ) {
-
-		if ( t === 1 ) {
-
-			return this.v2.clone();
-
-		}
 
 		var vector = new THREE.Vector3();
 
@@ -94535,7 +94648,7 @@ THREE.ArrowHelper.prototype.setColor = function ( color ) {
  */
 
 THREE.BoxHelper = function ( object, color ) {
-
+	
 	if ( color === undefined ) color = 0xffff00;
 
 	var indices = new Uint16Array( [ 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 ] );
@@ -95067,22 +95180,20 @@ THREE.FaceNormalsHelper.prototype.update = ( function () {
  * @author mrdoob / http://mrdoob.com/
  */
 
-THREE.GridHelper = function ( size, divisions, color1, color2 ) {
+THREE.GridHelper = function ( size, step, color1, color2 ) {
 
-	divisions = divisions || 1;
 	color1 = new THREE.Color( color1 !== undefined ? color1 : 0x444444 );
 	color2 = new THREE.Color( color2 !== undefined ? color2 : 0x888888 );
 
-	var center = divisions / 2;
-	var step = ( size * 2 ) / divisions;
-	var vertices = [], colors = [];
+	var vertices = [];
+	var colors = [];
 
-	for ( var i = 0, j = 0, k = - size; i <= divisions; i ++, k += step ) {
+	for ( var i = - size, j = 0; i <= size; i += step ) {
 
-		vertices.push( - size, 0, k, size, 0, k );
-		vertices.push( k, 0, - size, k, 0, size );
+		vertices.push( - size, 0, i, size, 0, i );
+		vertices.push( i, 0, - size, i, 0, size );
 
-		var color = i === center ? color1 : color2;
+		var color = i === 0 ? color1 : color2;
 
 		color.toArray( colors, j ); j += 3;
 		color.toArray( colors, j ); j += 3;
@@ -96913,3 +97024,23 @@ THREE.OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype )
 
 
 //# sourceMappingURL=sim-shim-bundle.js.map
+/* LICENSES
+
+sim-shim-js
+https://github.com/codemaker1999/sim-shim-js
+The MIT License
+Copyright © 2016 John Meade
+
+three.js
+http://threejs.org
+https://github.com/mrdoob/three.js/
+The MIT License
+Copyright © 2010-2016 three.js authors
+
+math.js
+http://mathjs.org
+https://github.com/josdejong/mathjs
+Apache License
+Version 2.0, January 2004
+http://www.apache.org/licenses/
+*/

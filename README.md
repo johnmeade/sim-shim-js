@@ -137,4 +137,19 @@ Notes and Tips
 Building
 ---------
 
-`npm install && bower install && brunch build`
+Bower is used for grabbing dependencies, and brunch is used for compilation.
+To set up:
+
+```
+npm install
+bower install
+```
+
+Then, to build:
+
+```
+brunch build
+brunch build --production
+```
+
+Note: the `--production` flag generates the minified files
