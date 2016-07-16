@@ -1,4 +1,4 @@
-import {zip} from './util-functional';
+import {zip} from 'UtilFunctional';
 
 class RungeKutta {
 

@@ -1,7 +1,7 @@
 {
-  "name": "John Meade",
+  "name": "sim-shim-js",
   "dependencies": {
-    "mathjs": "http://cdnjs.cloudflare.com/ajax/libs/mathjs/1.7.0/math.js",
-    "threejs": "https://raw.githubusercontent.com/mrdoob/three.js/master/build/three.js"
+    "mathjs": "http://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js",
+    "threejs": "http://cdnjs.cloudflare.com/ajax/libs/three.js/r78/three.js"
   }
 }
