@@ -1,5 +1,5 @@
-Breaking Change
-----------------
+**Notice**: Breaking Change
+------------------------
 
 The library has been moved to a CommonJS pattern.
 The new API requires that you add the following line:
@@ -14,6 +14,8 @@ var SimShim = require('SimShim');
 
 3D Plotting and Animation Using WebGL
 ======================================
+
+**Try it out and see examples at http://codemaker1999.github.io/sim-shim-js**
 
 The main goals of this project are to provide
 
@@ -113,7 +115,6 @@ ss.start();
 
 SimShim will figure the rest out. There are many customizable options, check out `/examples/api-overview.js` if you want a quick reference to them.
 
-**Try it out and see examples at http://codemaker1999.github.io/sim-shim-js**
 
 Notes and Tips
 ---------------
