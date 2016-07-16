@@ -2,38 +2,17 @@
 <head>
     <titlesim-shim-js Live Demo</title>
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <style>
-    #plot {
-        width: 65vw;
-        height: 100vh;
-        position: absolute;
-        top: 0;
-        right: 0;
-    }
-    #editor {
-        width: 35vw;
-        height: 100vh;
-        position: absolute;
-        top: 0;
-        left: 0;
-    }
-    #run-btn {
-        width: 60px;
-        height: 30px;
-        position: absolute;
-        top: 0;
-        right: 65vw;
-        z-index: 1000;
-    }
-    </style>
+    <link rel="stylesheet" type="text/css" href="../styles/default-editor-plot.css">
 </head>
 <body>
     <div id="editor"></div>
     <div id="plot"></div>
-    <button id="run-btn" onclick="run()">Run</button>
+    <button id="reset-text-btn">Reset Editor Text</button>
+    <button id="run-btn">Run</button>
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
-    <script type="text/javascript" src="/sim-shim-js/js/ace/src-min/ace.js"></script>
-    <script type="text/javascript" src="/sim-shim-js/js/sim-shim-bundle.min.js"></script>
+    <script type="text/javascript" src="../js/sim-shim-bundle.js"></script>
+    <script type="text/javascript" src="../js/ace/src-min/ace.js"></script>
+    <script type="text/javascript" src="../js/editor-manager.js"></script>
     <script type="text/javascript" src="main.js"></script>
 </body>
 </html>

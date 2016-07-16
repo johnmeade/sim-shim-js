@@ -55,12 +55,18 @@ var wireCube = {
   },
 };
 
+// import library
+var SimShim = require('SimShim');
+
+// intantiate a sim-shim object
 var ss = new SimShim(
-document.getElementById("plot")
+  document.getElementById("plot")
 );
 
+// add some plots
 ss.addPlot( square    );
 ss.addPlot( wireCube  );
 ss.addPlot( animHelix );
 
+// start rending
 ss.start();

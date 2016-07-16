@@ -58,6 +58,7 @@ var plt = {
   "data": createMesh(0, 0, l, l, dx, z),
 };
 
+var SimShim = require('SimShim');
 var ss = new SimShim(
   document.getElementById("plot"),
   {

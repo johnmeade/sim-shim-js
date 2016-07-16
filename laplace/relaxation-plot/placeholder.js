@@ -108,6 +108,7 @@ var plt = {
   }
 };
 
+var SimShim = require('SimShim');
 var ss = new SimShim(
   document.getElementById("plot"),
   {

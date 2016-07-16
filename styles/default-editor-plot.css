@@ -17,9 +17,17 @@ body {
 }
 #run-btn {
     width: 60px;
-    height: 50px;
+    height: 30px;
     position: absolute;
-    top: 0;
-    right: 62vw;
+    top: 70px;
+    right: 67vw;
+    z-index: 1000;
+}
+#reset-text-btn {
+    width: 140px;
+    height: 30px;
+    position: absolute;
+    top: 20px;
+    right: 67vw;
     z-index: 1000;
 }

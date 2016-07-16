@@ -9,9 +9,8 @@
 |*|  parameter. the quality of the plot makes a big difference
 |*|  in performance.
 |*|
-|*|  Performance will slow down with repeated running, save
-|*|  your code and refresh the page frequently. I will
-|*|  improve this later...
+|*|  If the page becomes sluggish, reload. Make sure you copy
+|*|  your code first!
 |*|
 |*/
 
@@ -55,6 +54,7 @@ var plt = {
   "data": createMesh(minX, minY, maxX, maxY, dx, z),
 };
 
+var SimShim = require('SimShim');
 var ss = new SimShim(
   document.getElementById("plot")
 );
