@@ -113,15 +113,27 @@ ss.addPlot( pulsingBlanket );
 ss.start();
 ```
 
-SimShim will figure the rest out. There are many customizable options, check out `/examples/api-overview.js` if you want a quick reference to them.
+SimShim will figure the rest out. There are many customizable options, some of which can be found at http://codemaker1999.github.io/sim-shim-js. Decent docs are coming soon (TM)!
+
+
+Controls
+---------
+
+The scheme used for controls is a camera looking at a point in space (the orbit target) that is some distance away from this point. The camera orbits around this point by dragging the mouse, and gets closer / farther by zooming. More detail is below, with mobile phone browser instructions in square brackets.
+
+* Drag the mouse [drag your finger] to orbit the camera around
+
+* Double-click [double-tap] on the plot to retarget the camera. This computes the min and max bounds of all three.js objects in the scene and positions the camera so that is can see everything (this is very useful for animations)
+
+* Scroll [pinch] to zoom closer to the camera orbit target
+
+* Use the arrow keys to manually move the point the camera is looking at
 
 
 Notes and Tips
 ---------------
 
 * Choice of variables are mostly up to you, for example `{"parse": "sin(x*y)", ...}` is equivelant to `{"parse": "sin(r*k)", ...}`. The exception to this is "t", which will always be treated as a "time" parameter when used in a surfaceplot.
-
-* Double-click on the plot to retarget the camera (this is useful for animations).
 
 * You can access the Three JS machinery through `things = ['camera', 'scene', 'renderer', 'controls', 'light']; ss.plotCtx[ things[i] ]`, and you can access the Three JS objects in the scene through `ss.plotCtx.plots[i].threeObj`.
 

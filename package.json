@@ -1,4 +1,6 @@
 {
+  "name": "sim-shim-js",
+  "version": "0.0.1",
   "devDependencies": {
     "bower": "1.4.1",
     "brunch": "^2.0",
