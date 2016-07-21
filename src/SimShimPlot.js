@@ -17,7 +17,7 @@ export default class SimShimPlot {
 
           var tree     = math.parse(plot.parse[i]),
               symNames = this.uniqueSymbolNames( tree ),
-              compiled = tree.compile(math);
+              compiled = tree.compile();
 
           if (symNames.length > 1) throw "Argument Error: "+
             "Please use 0 or 1 symbols for parsed lineplot functions";
@@ -136,7 +136,7 @@ export default class SimShimPlot {
         var fn;
         var tree     = math.parse(plot.parse),
             symNames = this.uniqueSymbolNames( tree ),
-            compiled = tree.compile(math),
+            compiled = tree.compile(),
             reqNumVars = 3;
         // special case for animations
         if (symNames.indexOf("t") != -1) reqNumVars++;
