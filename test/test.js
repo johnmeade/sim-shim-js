@@ -1,3 +1,5 @@
+var SimShim = require('SimShim');
+
 function addElem (name, n, s) {
     var par = document.getElementById("plotlist");
     var d = document.createElement("div");

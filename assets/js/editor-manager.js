@@ -26,23 +26,22 @@ function EditorManager(opt) {
     $(plotId).empty();
     // run new code
     var code = editor.getSession().getValue();
-    window.sessionStorage[TAG]=code;
-    console.log('eval code');
+    window.localStorage[TAG]=code;
     eval.call(window, code);
   }
 
   // set editor text
-  var existing = window.sessionStorage[TAG];
+  var existing = window.localStorage[TAG];
   if (existing) {
     editor.getSession().setValue( existing );
-    updateFunction();
+    // updateFunction();
   } else if (placeholderPath) {
     // specify dataType so js is not executed
     $.ajax(placeholderPath, {
         dataType: 'text',
         success: function (data) {
           editor.getSession().setValue( data );
-          updateFunction();
+          // updateFunction();
         }
     });
   }
@@ -55,6 +54,7 @@ function EditorManager(opt) {
           dataType: 'text',
           success: function (data) {
             editor.getSession().setValue( data );
+            // delete window.localStorage[TAG];
           }
       });
   }

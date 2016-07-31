@@ -9,8 +9,10 @@
 |*|  parameter. the quality of the plot makes a big difference
 |*|  in performance.
 |*|
-|*|  If the page becomes sluggish, reload. Make sure you copy
-|*|  your code first!
+|*|  If the page becomes sluggish, reload. This editor attempts
+|*|  to save your code to your browser when you click run... but
+|*|  for anything other than fiddling, you should save a copy in
+|*|  your code editor!
 |*|
 |*/
 
