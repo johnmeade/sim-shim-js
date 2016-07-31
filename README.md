@@ -44,7 +44,7 @@ var square = {
 };
 
 var SimShim = require('SimShim');
-var ss = new SimShim( htmlElement );
+var ss = new SimShim('#plot-div');
 ss.addPlot( triangle );
 ss.addPlot( square );
 ss.start();
@@ -65,7 +65,7 @@ var animSpiral = {
 };
 
 var SimShim = require('SimShim');
-var ss = new SimShim( htmlElement );
+var ss = new SimShim('#plot-div');
 ss.addPlot( animSpiral );
 ss.start();
 ```
@@ -85,7 +85,7 @@ var blanket = {
 };
 
 var SimShim = require('SimShim');
-var ss = new SimShim( htmlElement );
+var ss = new SimShim('#plot-div');
 ss.addPlot( blanket );
 ss.start();
 ```
@@ -108,7 +108,7 @@ var pulsingBlanket = {
 };
 
 var SimShim = require('SimShim');
-var ss = new SimShim( htmlElement );
+var ss = new SimShim('#plot-div');
 ss.addPlot( pulsingBlanket );
 ss.start();
 ```

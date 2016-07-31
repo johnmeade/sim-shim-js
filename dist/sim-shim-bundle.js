@@ -276,6 +276,16 @@ module.exports = function () {
     |*|  Unpack settings
     \*/
 
+    // sanitize plot target
+    if (typeof plotTarget === 'string') // selector string, '#plot'
+      plotTarget = document.querySelector(plotTarget);else if (plotTarget instanceof Array) // element list, $('#plot')
+      plotTarget = plotTarget[0];
+
+    if (!(plotTarget instanceof Element)) {
+      console.error('Unsupported plotTarget input (first argument of SimShim constructor)');
+      return;
+    }
+
     this._userDefinedCam = Boolean(settings.cameraPosn); // flag
     settings.far = settings.far || 500;
     settings.near = settings.near || 0.005;
@@ -313,8 +323,8 @@ module.exports = function () {
 
     // -----------------------------------------------------
     // Renderer
-    var renderer = new THREE.WebGLRenderer({
 
+    var renderer = new THREE.WebGLRenderer({
       // TODO expose more options?
       // scale: SCALE,
       // brightness: 2,
