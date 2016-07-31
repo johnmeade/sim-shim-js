@@ -1,5 +1,7 @@
+import SimShimSanitize from 'SimShimSanitize';
 import SimShimPlotCtx from 'SimShimPlotCtx';
 import SimShimPlot from 'SimShimPlot';
+import SimShimUtil from 'SimShimUtil';
 
 module.exports = class SimShim {
 
@@ -8,50 +10,70 @@ module.exports = class SimShim {
     this.paused = false;
 
     /*\
-    |*|  Unpack settings
+    |*|  Sanitize
     \*/
 
-    // sanitize plot target
-    if (typeof plotTarget === 'string') // selector string, '#plot'
-      plotTarget = document.querySelector(plotTarget);
-    else if (plotTarget instanceof Array) // element list, $('#plot')
-      plotTarget = plotTarget[0];
+    // try to parse the plot target
 
-    if (!(plotTarget instanceof Element)) {
-      console.error('Unsupported plotTarget input (first argument of SimShim constructor)');
-      return;
+    if (typeof plotTarget === 'string') {
+      // '#plot'
+      plotTarget = document.querySelector(plotTarget);
+    } else if (plotTarget instanceof Array)
+      // $('.plot')
+      plotTarget = plotTarget[0];
     }
 
-    this._userDefinedCam      = Boolean(settings.cameraPosn); // flag
-    settings.far            = settings.far            || 500;
-    settings.near           = settings.near           || 0.005;
-    settings.showGrid       = settings.showGrid       || true; // TODO
-    settings.showAxes       = settings.showAxes       || true; // TODO
-    settings.ctrlType       = settings.ctrlType       || "orbit";
-    settings.clearColor     = settings.clearColor     || "#111";
-    settings.autoRotate     = settings.autoRotate     || false;
-    settings.cameraPosn     = settings.cameraPosn     || [0,0,0];
-    settings.cameraAngle    = settings.cameraAngle    || 45;
-    settings.orbitTarget    = settings.orbitTarget    || [0,0,0];
-    settings.lightIntensity = settings.lightIntensity || 0.85;
+    if (!(plotTarget instanceof Element)) {
+      throw 'First argument of SimShim constructor must be a selector string, jquery selection array, or an Element');
+    }
+
+    SimShimSanitize.checkSettings(settings, 'throw');
+
+    /*\
+    |*|  Unpack / Initialize Settings
+    \*/
+
+    let setns = {};
+
+    setns.userDefinedCam     = Boolean(settings.cameraPosn);
+    setns.far                = settings.far            || 500;
+    setns.near               = settings.near           || 0.005;
+    setns.showGrid           = settings.showGrid       || true; // TODO
+    setns.showAxes           = settings.showAxes       || true; // TODO
+    setns.ctrlType           = settings.ctrlType       || "orbit";
+    setns.clearColor         = settings.clearColor     || "#111";
+    setns.autoRotate         = settings.autoRotate     || false;
+    setns.cameraPosn         = settings.cameraPosn     || [0,0,0];
+    setns.cameraAngle        = settings.cameraAngle    || 45;
+    setns.orbitTarget        = settings.orbitTarget    || [0,0,0];
+    setns.lightIntensity     = settings.lightIntensity || 0.85;
+
+    /*\
+    |*|  Conversions
+    \*/
+
+    // accept arrays from users, but work with Vector3 internally
+    setns.cameraPosn = SimShimUtil.toVector3( setns.cameraPosn );
+    setns.cameraAngle = SimShimUtil.toVector3( setns.cameraAngle );
+    setns.orbitTarget = SimShimUtil.toVector3( setns.orbitTarget );
 
     /*\
     |*|  Constants
     \*/
 
-    const FAR           = settings.far,
-          NEAR          = settings.near,
-          WIDTH         = plotTarget.offsetWidth,
+    const WIDTH         = plotTarget.offsetWidth,
           HEIGHT        = plotTarget.offsetHeight,
-          AUTOROT       = settings.autoRotate,
-          CTRLTYPE      = settings.ctrlType,
-          SHOWGRID      = settings.showGrid,
-          SHOWAXES      = settings.showAxes,
-          CAMANGLE      = settings.cameraAngle,
-          CAMERAPOSN    = settings.cameraPosn,
-          CLEARCOLOR    = new THREE.Color( settings.clearColor ),
-          ORBITTARGET   = settings.orbitTarget,
-          LIGHTINTESITY = settings.lightIntensity
+          FAR           = setns.far,
+          NEAR          = setns.near,
+          SHOWGRID      = setns.showGrid,
+          SHOWAXES      = setns.showAxes,
+          CTRLTYPE      = setns.ctrlType,
+          AUTOROT       = setns.autoRotate,
+          CAMERAPOSN    = setns.cameraPosn,
+          CAMANGLE      = setns.cameraAngle,
+          ORBITTARGET   = setns.orbitTarget,
+          LIGHTINTESITY = setns.lightIntensity
+          CLEARCOLOR    = new THREE.Color( setns.clearColor ),
           ;
 
     /*\
@@ -84,11 +106,9 @@ module.exports = class SimShim {
     // Camera
 
     var camera = new THREE.PerspectiveCamera(CAMANGLE, WIDTH/HEIGHT, NEAR, FAR);
-    camera.position.x = CAMERAPOSN[0];
-    camera.position.y = CAMERAPOSN[1];
-    camera.position.z = CAMERAPOSN[2];
+    camera.position.set( CAMERAPOSN );
     camera.up = new THREE.Vector3(0,0,1);
-    camera.lookAt(ORBITTARGET);
+    camera.lookAt( ORBITTARGET );
     scene.add(camera);
 
     // -----------------------------------------------------
@@ -98,25 +118,23 @@ module.exports = class SimShim {
     switch (CTRLTYPE) {
 
       case "fly":
-      if (!THREE.FlyControls) throw "Error: "+
-        "Please include FlyControls.js before plotting";
-      controls = new THREE.FlyControls( camera );
-      controls.dragToLook = true;
-      break;
+        if (!THREE.FlyControls) throw "Error: "+
+          "Please include FlyControls.js before plotting";
+        controls = new THREE.FlyControls( camera );
+        controls.dragToLook = true;
+        break;
 
       case "orbit":
-      if (!THREE.OrbitControls) throw "Error: "+
-        "Please include OrbitControls.js before plotting";
-      controls = new THREE.OrbitControls( camera, renderer.domElement );
-      controls.target.x = ORBITTARGET[0];
-      controls.target.y = ORBITTARGET[1];
-      controls.target.z = ORBITTARGET[2];
-      controls.autoRotate = AUTOROT;
-      break;
+        if (!THREE.OrbitControls) throw "Error: "+
+          "Please include OrbitControls.js before plotting";
+        controls = new THREE.OrbitControls( camera, renderer.domElement );
+        controls.target.set( ORBITTARGET );
+        controls.autoRotate = AUTOROT;
+        break;
 
       default:
-      throw "Argument Error: Invalid control type '"+CTRLTYPE+"'";
-      break;
+        throw "Argument Error: Invalid control type '"+CTRLTYPE+"'";
+        break;
 
     }
 
@@ -147,17 +165,20 @@ module.exports = class SimShim {
     );
 
     // resize
-    window.addEventListener(
+    // TODO fix this!
+    plotTarget.addEventListener(
       'resize',
-      ((rend, cam) => {
-        return () => {
-          var W = rend.domElement.offsetWidth,
-              H = rend.domElement.offsetHeight;
-          cam.aspect = W / H;
-          cam.updateProjectionMatrix();
-          rend.setSize( W, H );
-        }
-      })(this.plotCtx.renderer, this.plotCtx.camera),
+      (rend, cam) => {
+        let W = rend.domElement.offsetWidth,
+            H = rend.domElement.offsetHeight;
+        console.log(plotTarget.style.width);
+        console.log(plotTarget.style.height);
+        console.log(renderer.domElement.style.width);
+        console.log(renderer.domElement.style.height);
+        camera.aspect = W / H;
+        camera.updateProjectionMatrix();
+        renderer.setSize( W, H );
+      },
       false
     );
 
@@ -167,37 +188,51 @@ module.exports = class SimShim {
     this.paused = bool;
   }
 
+  isPaused() {
+    return this.paused;
+  }
+
   addPlot (plot, settings = {}) {
-    // add/parse color
-    var color = settings.color ?
-                new THREE.Color(settings.color) :
-                new THREE.Color().setHSL(Math.random(),80/100,65/100);
+    try {
 
-    // shading type
-    var sh;
-    switch (settings.shading) {
-      case 'smooth':
-        sh = THREE.SmoothShading;
-        break;
-      case 'flat':
-        sh = THREE.FlatShading;
-        break;
-      default:
-        sh = THREE.SmoothShading;
+      SimShim._sanitizePlotObj(plot); // throws
+
+      // add/parse color
+      var color = settings.color ?
+                  new THREE.Color(settings.color) :
+                  new THREE.Color().setHSL(Math.random(),80/100,65/100);
+
+      // shading type
+      var sh;
+      switch (settings.shading) {
+        case 'smooth':
+          sh = THREE.SmoothShading;
+          break;
+        case 'flat':
+          sh = THREE.FlatShading;
+          break;
+        default:
+          console.warn(`Unrecognized shading '${settings.shading}', using smooth`)
+          sh = THREE.SmoothShading;
+      }
+
+      // make unique alpha-num string
+      var id;
+      do id = Math.random().toString(36).slice(2);
+      while (this.ids.indexOf(id) != -1);
+      this.ids.push(id);
+
+      // parse into wrapper
+      let ssPlot = new SimShimPlot( plot, id, color, sh ); // throws
+      this.plotCtx.scene.add( ssPlot.threeObj );
+      this.plotCtx.plots.push( ssPlot );
+      return id;
+
+    } catch (e) {
+      console.error(e);
+      console.warn('addPlot returning null');
+      return null;
     }
-
-    // make unique alpha-num string
-    var id;
-    do id = Math.random().toString(36).slice(2);
-    while (this.ids.indexOf(id) != -1);
-    this.ids.push(id);
-
-    // parse into wrapper
-    var _plot = new SimShimPlot( plot, this.plotCtx.scene, color, sh );
-    _plot.id = id;
-    this.plotCtx.plots.push( _plot );
-
-    return id;
   }
 
   addObject (obj, settings = {}) {
@@ -221,11 +256,11 @@ module.exports = class SimShim {
   }
 
   getPlot (id) {
-    return this.plotCtx.plots.find((p)=>{ return p.id == id });
+    return this.plotCtx.plots.find( (p) => p.id == id );
   }
 
+  // remove all SimShimPlots and pause
   kill () {
-    // remove all SimShimPlots and pause
     for (let i=0; i<this.plotCtx.plots.length; i++) {
       let p = this.plotCtx.plots[i];
       this.plotCtx.scene.remove( p.threeObj );
@@ -236,26 +271,21 @@ module.exports = class SimShim {
   }
 
   removeById (id) {
-    let ind = this.ids.indexOf( id );
-    if (ind > -1) {
-      let match = -1;
-      for (let i=0; i<this.plotCtx.plots.length; i++) {
-        if (this.plotCtx.plots[i].id == id) {
-          match = i;
-          break;
-        }
-      }
-      if (match > -1) {
-        this.plotCtx.scene.remove( this.plotCtx.plots[match].threeObj );
-        this.plotCtx.plots.splice( match, 1 );
-        this.ids.splice( ind, 1 );
-      }
-    } else {
-      console.warn("No plot with id "+id+", did not remove any plots.");
+    let idIdx = this.ids.indexOf( id );
+    let plotIdx = this.plotCtx.plots.findIndex((p) => p.id == id);
+    if (idIdx == -1) console.warn(`Plot id ${id} not tracked by SimShim (did you use the 'addPlot' method?)`);
+    else this.ids.splice( idIdx, 1 );
+    if (plotIdx == -1) console.warn(`No plot with id ${id} found, no plots removed`);
+    else {
+      this.plotCtx.scene.remove( this.plotCtx.plots[plotIdx].threeObj );
+      this.plotCtx.plots.splice( plotIdx, 1 );
     }
   }
 
+  // replace any given settings
   setSettings (settings = {}) {
+
+    SimShim._sanitizeSettings(settings, 'warn');
 
     for (let k in settings) {
       switch (k) {
@@ -280,6 +310,9 @@ module.exports = class SimShim {
           break;
         case 'autoRotate':
           this.plotCtx.controls.autoRotate = settings[k];
+          break;
+        default:
+          console.warn(`Cannot modify setting "${k}", skipping this key`);
           break;
       }
     }
@@ -372,20 +405,18 @@ module.exports = class SimShim {
 
     // Update Scene (Lights, Camera)
     this.updateMetrics();
-    if (!this._userDefinedCam) this.retargetCamera();
+    if (!this.userDefinedCam) this.retargetCamera();
     this.plotCtx.light.position.copy( this.plotCtx.camera.position );
     this.plotCtx.light.lookAt( this.plotCtx.metrics.center );
 
+    // polyfill animation frames
+    window.requestAnimationFrame = window.requestAnimationFrame
+                                || window.webkitRequestAnimationFrame
+                                || window.mozRequestAnimationFrame
+                                || window.oRequestAnimationFrame
+                                || window.msRequestAnimationFrame
+                                || (cb) => window.setTimeout( cb, 1000 / 60 );
     // start the render loop
-    window.requestAnimationFrame =
-      window.requestAnimationFrame       ||
-      window.webkitRequestAnimationFrame ||
-      window.mozRequestAnimationFrame    ||
-      window.oRequestAnimationFrame      ||
-      window.msRequestAnimationFrame     ||
-    	function (cb) { window.setTimeout( cb, 1000 / 60 ) };
     this.animate();
   }
 }
-
-// module.exports = SimShim;
