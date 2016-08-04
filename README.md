@@ -25,12 +25,25 @@ The main goals of this project are to provide
 
 * A rich set of examples to provide a starting point for common tasks
 
+
+Examples
+---------
+
+There is an included set of examples that demonstrates all supported uses of
+the library (along with some common tasks like ODE simulation) in the
+`examples` folder (ignore the `index.*` files). Check them out
+[here](http://codemaker1999.github.io/sim-shim-js) (or spin up a dev server and
+go to `localhost:xxxx/examples`).
+
+
 Usage
 ------
 
-Create a valid plottable object, and provide a DIV or something for the plot to live in.
+Just create a valid plottable JSON object, and provide a DOM element for the plot to live in.
 
-There are several types of plottable objects, including lines in 3D space, animated 3D lines, and surface plots. For example, to make an interactive plot containing a triangle and a square, you could write:
+There are several types of plottable objects, including lines in 3D space,
+animated 3D lines, and surface plots. For example, to make an interactive plot
+containing a triangle and a square, you could write:
 
 ```js
 var triangle = {
@@ -45,12 +58,14 @@ var square = {
 
 var SimShim = require('SimShim');
 var ss = new SimShim('#plot-div');
+// or "var ss = new SimShim(document.getElementById('plot-div'));"
+// or "var ss = new SimShim($('#plot-div'));"
 ss.addPlot( triangle );
 ss.addPlot( square );
 ss.start();
 ```
 
-to create an animated spiral:
+to create an animated spiral / helix:
 
 ```js
 var animSpiral = {
@@ -147,6 +162,7 @@ Notes and Tips
 
 * For charts and graphs, try this: http://threegraphs.com/
 
+
 Building
 ---------
 
@@ -166,3 +182,19 @@ brunch build --production
 ```
 
 Note: the `--production` flag generates the minified files
+
+
+What's Next?
+-------------
+
+* Resizing support (I've been putting this one off for a while...)
+
+* GUI features like buttons for fullscreen, floating plot labels, etc
+
+* implicit surface plots, ie plotting `f(x,y,z)` such that `f(x,y,z) = 0`. The
+  constraint on `f` yields `3-1=2` degrees of freedom, thus defining a surface
+  (implicitly).
+
+* built-in ODE simulation (runge kutta methods library)
+
+* AND MORE!!!

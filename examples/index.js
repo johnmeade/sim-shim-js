@@ -21,6 +21,7 @@ editor.setOptions({
   readOnly: true,
   fontSize: '10pt'
 });
+editor.$blockScrolling = Infinity;
 
 // init simshim
 var ss = new SimShim('#plot', {clearColor: '#111'});
