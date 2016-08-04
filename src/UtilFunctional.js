@@ -4,7 +4,7 @@ export function add(x1,x2) {
 
 export function zip(x1,x2) {
   if (x1.length != x2.length)
-    throw 'zip: lists not same length';
+    throw new Error('zip: lists not same length');
   else return zipRec(x1,x2,[]);
 }
 

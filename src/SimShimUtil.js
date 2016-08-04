@@ -4,9 +4,15 @@
 
 export default class SimShimUtil {
 
-  static toVector3(o) {
+  static toVec3(o) {
     if (o instanceof THREE.Vector3) return o;
     if (o instanceof Array) return new THREE.Vector3().fromArray(o);
+    console.error('Cannot coerce into Vector3');
+  }
+
+  static toQuat(o) {
+    if (o instanceof THREE.Quaternion) return o;
+    if (o instanceof Array) return new THREE.Quaternion().fromArray(o);
     console.error('Cannot coerce into Vector3');
   }
 

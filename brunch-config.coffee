@@ -29,4 +29,4 @@ module.exports =
       # write licenses
       f = genFiles[0].path
       lic = fs.readFileSync(LICENSES)
-      fs.appendFile f, lic, (err) => throw "Couldn't write Licenses!"
+      fs.appendFile f, lic, (err) => throw new Error("Couldn't write Licenses!")

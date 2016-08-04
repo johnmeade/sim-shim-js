@@ -1,0 +1,66 @@
+/* Use flexbox so I don't have to gouge my eyes out (too bad so sad, IE)*/
+
+body {
+    background-color: #222;
+    font-family: monospace;
+    margin: 0;
+    display: flex;
+}
+
+
+a {
+  color: #69b;
+}
+
+p {
+  color: #ccc;
+  font-size: 11pt;
+}
+
+
+#left-pane {
+  width: 600px;
+  max-width: 50%;
+  order: 0;
+  flex-grow: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+
+#proj-site-link {
+  order: 0;
+  flex-grow: 0;
+  text-align: center;
+}
+
+
+#expl {
+  margin-top: 0;
+  order: 1;
+  text-align: center;
+}
+
+
+#select-box {
+  order: 2;
+  flex-grow: 0;
+
+  font-family: monospace;
+  text-align: center;
+  font-size: 11pt;
+}
+
+
+#editor {
+  order: 3;
+  flex-grow: 1;
+}
+
+
+#plot {
+  height: 100vh;
+  order: 1;
+  flex-grow: 1;
+}
