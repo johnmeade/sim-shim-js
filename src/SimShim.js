@@ -163,19 +163,21 @@ module.exports = class SimShim {
     );
 
     // resize
-    // TODO fix this!
-    plotTarget.addEventListener(
+    let resizeCallback
+    window.addEventListener(
       'resize',
-      (rend, cam) => {
-        let W = rend.domElement.offsetWidth,
-            H = rend.domElement.offsetHeight;
-        console.log(plotTarget.style.width);
-        console.log(plotTarget.style.height);
-        console.log(renderer.domElement.style.width);
-        console.log(renderer.domElement.style.height);
-        camera.aspect = W / H;
-        camera.updateProjectionMatrix();
-        renderer.setSize( W, H );
+      () => {
+        let W = plotTarget.offsetWidth,
+            H = plotTarget.offsetHeight
+        clearTimeout(resizeCallback)
+        resizeCallback = setTimeout(
+          () => {
+            camera.aspect = W / H
+            camera.updateProjectionMatrix()
+            renderer.setSize( W, H )
+          },
+          400
+        )
       },
       false
     );

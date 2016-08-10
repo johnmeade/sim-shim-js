@@ -427,17 +427,16 @@ module.exports = function () {
     }, false);
 
     // resize
-    // TODO fix this!
-    plotTarget.addEventListener('resize', function (rend, cam) {
-      var W = rend.domElement.offsetWidth,
-          H = rend.domElement.offsetHeight;
-      console.log(plotTarget.style.width);
-      console.log(plotTarget.style.height);
-      console.log(renderer.domElement.style.width);
-      console.log(renderer.domElement.style.height);
-      camera.aspect = W / H;
-      camera.updateProjectionMatrix();
-      renderer.setSize(W, H);
+    var resizeCallback = void 0;
+    window.addEventListener('resize', function () {
+      var W = plotTarget.offsetWidth,
+          H = plotTarget.offsetHeight;
+      clearTimeout(resizeCallback);
+      resizeCallback = setTimeout(function () {
+        camera.aspect = W / H;
+        camera.updateProjectionMatrix();
+        renderer.setSize(W, H);
+      }, 400);
     }, false);
   }
 
