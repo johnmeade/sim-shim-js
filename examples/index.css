@@ -1,9 +1,11 @@
 /* Use flexbox so I don't have to gouge my eyes out (too bad so sad, IE)*/
 
 body {
-    background-color: #222;
+    background-color: #333;
     font-family: monospace;
     margin: 0;
+    /*overflow: none;*/
+
     display: flex;
 }
 
@@ -19,10 +21,10 @@ p {
 
 
 #left-pane {
-  width: 600px;
-  max-width: 50%;
+  height: 100vh;
+  /*max-width: 50%;*/
   order: 0;
-  flex-grow: 0;
+  flex: 0 0 600px;
 
   display: flex;
   flex-direction: column;
@@ -32,13 +34,15 @@ p {
 #proj-site-link {
   order: 0;
   flex-grow: 0;
+
   text-align: center;
 }
 
 
 #expl {
-  margin-top: 0;
   order: 1;
+
+  margin-top: 0;
   text-align: center;
 }
 
@@ -56,11 +60,13 @@ p {
 #editor {
   order: 3;
   flex-grow: 1;
+  flex-shrink: 1;
 }
 
 
 #plot {
   height: 100vh;
   order: 1;
-  flex-grow: 1;
+
+  flex: 1 1 auto;
 }

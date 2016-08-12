@@ -162,16 +162,17 @@ module.exports = class SimShim {
       false
     );
 
-    // resize
+    // resize (only fire event after 400ms of no resize events)
     let resizeCallback
+    window.pt = plotTarget
     window.addEventListener(
       'resize',
       () => {
-        let W = plotTarget.offsetWidth,
-            H = plotTarget.offsetHeight
         clearTimeout(resizeCallback)
         resizeCallback = setTimeout(
           () => {
+            let W = plotTarget.offsetWidth,
+                H = plotTarget.offsetHeight
             camera.aspect = W / H
             camera.updateProjectionMatrix()
             renderer.setSize( W, H )
