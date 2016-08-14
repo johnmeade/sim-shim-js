@@ -249,6 +249,10 @@ var RK4 = function (_RungeKutta) {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _SimShimSanitize = require('SimShimSanitize');
+
+var _SimShimSanitize2 = _interopRequireDefault(_SimShimSanitize);
+
 var _SimShimPlotCtx = require('SimShimPlotCtx');
 
 var _SimShimPlotCtx2 = _interopRequireDefault(_SimShimPlotCtx);
@@ -256,6 +260,10 @@ var _SimShimPlotCtx2 = _interopRequireDefault(_SimShimPlotCtx);
 var _SimShimPlot = require('SimShimPlot');
 
 var _SimShimPlot2 = _interopRequireDefault(_SimShimPlot);
+
+var _SimShimUtil = require('SimShimUtil');
+
+var _SimShimUtil2 = _interopRequireDefault(_SimShimUtil);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -273,49 +281,69 @@ module.exports = function () {
     this.paused = false;
 
     /*\
-    |*|  Unpack settings
+    |*|  Sanitize
     \*/
 
-    // sanitize plot target
-    if (typeof plotTarget === 'string') // selector string, '#plot'
-      plotTarget = document.querySelector(plotTarget);else if (plotTarget instanceof Array) // element list, $('#plot')
-      plotTarget = plotTarget[0];
+    // try to parse the plot target
 
-    if (!(plotTarget instanceof Element)) {
-      console.error('Unsupported plotTarget input (first argument of SimShim constructor)');
-      return;
+    if (typeof plotTarget === 'string') {
+      // '#plot'
+      plotTarget = document.querySelector(plotTarget);
+    } else if (plotTarget instanceof Array) {
+      // $('.plot')
+      plotTarget = plotTarget[0];
     }
 
-    this._userDefinedCam = Boolean(settings.cameraPosn); // flag
-    settings.far = settings.far || 500;
-    settings.near = settings.near || 0.005;
-    settings.showGrid = settings.showGrid || true; // TODO
-    settings.showAxes = settings.showAxes || true; // TODO
-    settings.ctrlType = settings.ctrlType || "orbit";
-    settings.clearColor = settings.clearColor || "#111";
-    settings.autoRotate = settings.autoRotate || false;
-    settings.cameraPosn = settings.cameraPosn || [0, 0, 0];
-    settings.cameraAngle = settings.cameraAngle || 45;
-    settings.orbitTarget = settings.orbitTarget || [0, 0, 0];
-    settings.lightIntensity = settings.lightIntensity || 0.85;
+    if (!(plotTarget instanceof Element)) {
+      throw new Error('First argument of SimShim constructor must be a selector string, jquery selection array, or an Element');
+    }
+
+    _SimShimSanitize2.default.checkSettings(settings, 'throw');
+
+    /*\
+    |*|  Unpack / Initialize Settings
+    \*/
+
+    var setns = {};
+
+    setns.userDefinedCam = Boolean(settings.cameraPosn);
+    setns.far = settings.far || 500;
+    setns.near = settings.near || 0.005;
+    setns.showGrid = settings.showGrid || true; // TODO
+    setns.showAxes = settings.showAxes || true; // TODO
+    setns.ctrlType = settings.ctrlType || "orbit";
+    setns.clearColor = settings.clearColor || "#111";
+    setns.autoRotate = settings.autoRotate || false;
+    setns.cameraPosn = settings.cameraPosn || [0, 0, 0];
+    setns.cameraAngle = settings.cameraAngle || 45;
+    setns.orbitTarget = settings.orbitTarget || [0, 0, 0];
+    setns.lightIntensity = settings.lightIntensity || 0.85;
+
+    /*\
+    |*|  Conversions
+    \*/
+
+    // accept arrays from users, but work with Vector3 internally
+    setns.cameraPosn = _SimShimUtil2.default.toVec3(setns.cameraPosn);
+    setns.orbitTarget = _SimShimUtil2.default.toVec3(setns.orbitTarget);
 
     /*\
     |*|  Constants
     \*/
 
-    var FAR = settings.far,
-        NEAR = settings.near,
-        WIDTH = plotTarget.offsetWidth,
+    var WIDTH = plotTarget.offsetWidth,
         HEIGHT = plotTarget.offsetHeight,
-        AUTOROT = settings.autoRotate,
-        CTRLTYPE = settings.ctrlType,
-        SHOWGRID = settings.showGrid,
-        SHOWAXES = settings.showAxes,
-        CAMANGLE = settings.cameraAngle,
-        CAMERAPOSN = settings.cameraPosn,
-        CLEARCOLOR = new THREE.Color(settings.clearColor),
-        ORBITTARGET = settings.orbitTarget,
-        LIGHTINTESITY = settings.lightIntensity;
+        FAR = setns.far,
+        NEAR = setns.near,
+        SHOWGRID = setns.showGrid,
+        SHOWAXES = setns.showAxes,
+        CTRLTYPE = setns.ctrlType,
+        AUTOROT = setns.autoRotate,
+        CAMERAPOSN = setns.cameraPosn,
+        CAMANGLE = setns.cameraAngle,
+        ORBITTARGET = setns.orbitTarget,
+        LIGHTINTESITY = setns.lightIntensity,
+        CLEARCOLOR = new THREE.Color(setns.clearColor);
 
     /*\
     |*|  Set up ThreeJS
@@ -347,9 +375,7 @@ module.exports = function () {
     // Camera
 
     var camera = new THREE.PerspectiveCamera(CAMANGLE, WIDTH / HEIGHT, NEAR, FAR);
-    camera.position.x = CAMERAPOSN[0];
-    camera.position.y = CAMERAPOSN[1];
-    camera.position.z = CAMERAPOSN[2];
+    camera.position.set(CAMERAPOSN);
     camera.up = new THREE.Vector3(0, 0, 1);
     camera.lookAt(ORBITTARGET);
     scene.add(camera);
@@ -361,22 +387,20 @@ module.exports = function () {
     switch (CTRLTYPE) {
 
       case "fly":
-        if (!THREE.FlyControls) throw "Error: " + "Please include FlyControls.js before plotting";
+        if (!THREE.FlyControls) throw new Error("Error: " + "Please include FlyControls.js before plotting");
         controls = new THREE.FlyControls(camera);
         controls.dragToLook = true;
         break;
 
       case "orbit":
-        if (!THREE.OrbitControls) throw "Error: " + "Please include OrbitControls.js before plotting";
+        if (!THREE.OrbitControls) throw new Error("Error: " + "Please include OrbitControls.js before plotting");
         controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.target.x = ORBITTARGET[0];
-        controls.target.y = ORBITTARGET[1];
-        controls.target.z = ORBITTARGET[2];
+        controls.target.set(ORBITTARGET);
         controls.autoRotate = AUTOROT;
         break;
 
       default:
-        throw "Argument Error: Invalid control type '" + CTRLTYPE + "'";
+        throw new Error('Argument Error: Invalid control type "' + CTRLTYPE + '"');
         break;
 
     }
@@ -399,20 +423,21 @@ module.exports = function () {
     // retarget camera (helpful for animations)
     plotTarget.addEventListener('dblclick', function (e) {
       if (_this.plotCtx.plots.length === 0) return;
-      _this.updateMetrics();
       _this.retargetCamera();
     }, false);
 
-    // resize
-    window.addEventListener('resize', function (rend, cam) {
-      return function () {
-        var W = rend.domElement.offsetWidth,
-            H = rend.domElement.offsetHeight;
-        cam.aspect = W / H;
-        cam.updateProjectionMatrix();
-        rend.setSize(W, H);
-      };
-    }(this.plotCtx.renderer, this.plotCtx.camera), false);
+    // resize (only fire event after 400ms of no resize events)
+    var resizeCallback = void 0;
+    window.addEventListener('resize', function () {
+      clearTimeout(resizeCallback);
+      resizeCallback = setTimeout(function () {
+        var W = plotTarget.offsetWidth,
+            H = plotTarget.offsetHeight;
+        camera.aspect = W / H;
+        camera.updateProjectionMatrix();
+        renderer.setSize(W, H);
+      }, 400);
+    }, false);
   }
 
   _createClass(SimShim, [{
@@ -421,39 +446,53 @@ module.exports = function () {
       this.paused = bool;
     }
   }, {
+    key: 'isPaused',
+    value: function isPaused() {
+      return this.paused;
+    }
+  }, {
     key: 'addPlot',
     value: function addPlot(plot) {
       var settings = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
-      // add/parse color
-      var color = settings.color ? new THREE.Color(settings.color) : new THREE.Color().setHSL(Math.random(), 80 / 100, 65 / 100);
+      try {
 
-      // shading type
-      var sh;
-      switch (settings.shading) {
-        case 'smooth':
-          sh = THREE.SmoothShading;
-          break;
-        case 'flat':
-          sh = THREE.FlatShading;
-          break;
-        default:
-          sh = THREE.SmoothShading;
+        _SimShimSanitize2.default.checkPlotObj(plot, 'throw'); // throws
+
+        // add/parse color
+        var color = settings.color ? new THREE.Color(settings.color) : new THREE.Color().setHSL(Math.random(), 80 / 100, 65 / 100);
+
+        // shading type
+        var sh;
+        switch (settings.shading) {
+          case 'smooth':
+            sh = THREE.SmoothShading;
+            break;
+          case 'flat':
+            sh = THREE.FlatShading;
+            break;
+          default:
+            sh = THREE.SmoothShading;
+        }
+
+        // make unique alpha-num string
+        var id;
+        do {
+          id = Math.random().toString(36).slice(2);
+        } while (this.ids.indexOf(id) != -1);
+        this.ids.push(id);
+
+        // parse into wrapper
+        var ssPlot = new _SimShimPlot2.default(plot, id, color, sh); // throws
+        this.plotCtx.scene.add(ssPlot.threeObj);
+        this.plotCtx.plots.push(ssPlot);
+
+        return id;
+      } catch (e) {
+        if (e.stack) console.error(e.stack);else console.error(e);
+        console.warn('addPlot returning null');
+        return null;
       }
-
-      // make unique alpha-num string
-      var id;
-      do {
-        id = Math.random().toString(36).slice(2);
-      } while (this.ids.indexOf(id) != -1);
-      this.ids.push(id);
-
-      // parse into wrapper
-      var _plot = new _SimShimPlot2.default(plot, this.plotCtx.scene, color, sh);
-      _plot.id = id;
-      this.plotCtx.plots.push(_plot);
-
-      return id;
     }
   }, {
     key: 'addObject',
@@ -484,14 +523,37 @@ module.exports = function () {
         return p.id == id;
       });
     }
+
+    // attempt to obliterate all objects, using THREEjs API and internal API
+
   }, {
     key: 'kill',
     value: function kill() {
-      // remove all SimShimPlots and pause
+      // THREEjs
+      var scene = this.plotCtx.scene;
+      if (scene.__objects) scene.__objects.forEach(function (obj, idx) {
+        scene.remove(obj);
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (obj.material instanceof THREE.MeshFaceMaterial) {
+            obj.material.materials.forEach(function (mat, idx) {
+              mat.dispose();
+            });
+          } else obj.material.dispose();
+        }
+        if (obj.dispose) obj.dispose();
+      });
+      // SimShim
       for (var i = 0; i < this.plotCtx.plots.length; i++) {
         var p = this.plotCtx.plots[i];
-        this.plotCtx.scene.remove(p.threeObj);
+        if (p.threeObj) {
+          scene.remove(p.threeObj);
+          if (p.threeObj.geometry) p.threeObj.geometry.dispose();
+          if (p.threeObj.dispose) p.threeObj.dispose();
+        }
+        this.plotCtx.plots[i] = undefined;
       }
+      // reset containers / remove references
       this.plotCtx.plots = [];
       this.ids = [];
       this.paused = true;
@@ -499,29 +561,26 @@ module.exports = function () {
   }, {
     key: 'removeById',
     value: function removeById(id) {
-      var ind = this.ids.indexOf(id);
-      if (ind > -1) {
-        var match = -1;
-        for (var i = 0; i < this.plotCtx.plots.length; i++) {
-          if (this.plotCtx.plots[i].id == id) {
-            match = i;
-            break;
-          }
-        }
-        if (match > -1) {
-          this.plotCtx.scene.remove(this.plotCtx.plots[match].threeObj);
-          this.plotCtx.plots.splice(match, 1);
-          this.ids.splice(ind, 1);
-        }
-      } else {
-        console.warn("No plot with id " + id + ", did not remove any plots.");
+      var idIdx = this.ids.indexOf(id);
+      var plotIdx = this.plotCtx.plots.findIndex(function (p) {
+        return p.id == id;
+      });
+      if (idIdx == -1) console.warn('Plot id ' + id + ' not tracked by SimShim (did you use the \'addPlot\' method?)');else this.ids.splice(idIdx, 1);
+      if (plotIdx == -1) console.warn('No plot with id ' + id + ' found, no plots removed');else {
+        this.plotCtx.scene.remove(this.plotCtx.plots[plotIdx].threeObj);
+        this.plotCtx.plots.splice(plotIdx, 1);
       }
     }
+
+    // replace any given settings
+
   }, {
     key: 'setSettings',
     value: function setSettings() {
       var settings = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
+
+      _SimShimSanitize2.default.checkSettings(settings, 'warn');
 
       for (var k in settings) {
         switch (k) {
@@ -547,56 +606,16 @@ module.exports = function () {
           case 'autoRotate':
             this.plotCtx.controls.autoRotate = settings[k];
             break;
+          default:
+            console.warn('Cannot modify setting "' + k + '", skipping this key');
+            break;
         }
       }
-    }
-  }, {
-    key: 'updateMetrics',
-    value: function updateMetrics() {
-      var res = {
-        "maxX": 0, "maxY": 0, "maxZ": 0,
-        "minX": 0, "minY": 0, "minZ": 0
-      };
-
-      // set Max and Min helper
-      function setMaxMin(data) {
-        for (var j = 0; j < data.length; j++) {
-          var px = data[j][0] || data[j].x,
-              py = data[j][1] || data[j].y,
-              pz = data[j][2] || data[j].z;
-          // set max
-          res.maxX = px > res.maxX ? px : res.maxX;
-          res.maxY = py > res.maxY ? py : res.maxY;
-          res.maxZ = pz > res.maxZ ? pz : res.maxZ;
-          // set min
-          res.minX = px < res.minX ? px : res.minX;
-          res.minY = py < res.minY ? py : res.minY;
-          res.minZ = pz < res.minZ ? pz : res.minZ;
-        }
-      }
-
-      // iterate
-      for (var i = 0; i < this.plotCtx.plots.length; i++) {
-        var p = this.plotCtx.plots[i];
-        if (p.threeObj) setMaxMin(p.threeObj.geometry.vertices);
-      }
-
-      // compute extra metrics
-      res.midX = (res.maxX + res.minX) / 2;
-      res.midY = (res.maxY + res.minY) / 2;
-      res.midZ = (res.maxZ + res.minZ) / 2;
-      res.distX = (res.maxX - res.minX) / 2;
-      res.distY = (res.maxY - res.minY) / 2;
-      res.distZ = (res.maxZ - res.minZ) / 2;
-      res.maxDist = Math.sqrt(Math.pow(res.distX, 2) + Math.pow(res.distY, 2) + Math.pow(res.distZ, 2));
-      res.center = new THREE.Vector3(res.midX, res.midY, res.midZ);
-
-      this.plotCtx.metrics = res;
     }
   }, {
     key: 'retargetCamera',
     value: function retargetCamera() {
-      var M = this.plotCtx.metrics,
+      var M = this.plotCtx.updateMetrics(),
           relativeCameraPosn = new THREE.Vector3(M.distX, M.distY, M.distZ).multiplyScalar(3),
           cameraPosn = relativeCameraPosn.add(M.center);
       // Camera
@@ -639,27 +658,319 @@ module.exports = function () {
       this.plotCtx.render();
 
       // Update Scene (Lights, Camera)
-      this.updateMetrics();
-      if (!this._userDefinedCam) this.retargetCamera();
+      if (!this.userDefinedCam) this.retargetCamera();
       this.plotCtx.light.position.copy(this.plotCtx.camera.position);
       this.plotCtx.light.lookAt(this.plotCtx.metrics.center);
 
-      // start the render loop
+      // polyfill animation frames
       window.requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || function (cb) {
-        window.setTimeout(cb, 1000 / 60);
+        return window.setTimeout(cb, 1000 / 60);
       };
+      // start the render loop
       this.animate();
     }
   }]);
 
   return SimShim;
 }();
-
-// module.exports = SimShim;
 });
 
-require.register("SimShimPlot.js", function(exports, require, module) {
-"use strict";
+;require.register("SimShimPlot.js", function(exports, require, module) {
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _SimShimUtil = require('./SimShimUtil');
+
+var _SimShimUtil2 = _interopRequireDefault(_SimShimUtil);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var SimShimPlot = function () {
+  function SimShimPlot(obj, id, color, shading) {
+    _classCallCheck(this, SimShimPlot);
+
+    this.id = id;
+
+    // parse plottable object into an iterator that updates ThreeJS geometries
+    this.obj = obj;
+
+    switch (obj.type) {
+      case 'lineplot':
+        this._initLineplot(color);
+        break;
+
+      case 'surfaceplot':
+        this._initSurface(color, shading);
+        break;
+
+      // TODO: "ode3", "pde3", "graph", ...?
+
+      default:
+        throw new Error('Unexpected plot type \'' + obj.type + '\'');
+    }
+  }
+
+  _createClass(SimShimPlot, [{
+    key: '_initLineplot',
+    value: function _initLineplot(color) {
+
+      var obj = this.obj;
+
+      // convert to the 'manual' form of lineplot
+      if (obj.parse) {
+        (function () {
+
+          // fns holds the parsed x(t), y(t), and z(t) funcitons
+          var fns = [];
+
+          var _loop = function _loop(i) {
+
+            var tree = math.parse(obj.parse[i]),
+                symNames = _SimShimUtil2.default.uniqueSymbolNames(tree),
+                compiled = tree.compile();
+
+            if (symNames.length > 1) throw new Error("Argument Error: " + "Please use 0 or 1 symbols for parsed lineplot functions");
+
+            fns.push(function (t) {
+              var s = {};
+              if (symNames.length > 0) s[symNames[0]] = t;
+              return compiled.eval(s);
+            });
+          };
+
+          for (var i = 0; i < obj.parse.length; i++) {
+            _loop(i);
+          }
+
+          var f = function f(t) {
+            return new THREE.Vector3(fns[0](t), fns[1](t), fns[2](t));
+          };
+
+          // animated lineplot
+          if (obj.animated) {
+            // create 'next' function
+            obj.t = obj.start;
+            obj.dt = obj.step;
+            obj.next = function () {
+              var xyz = f(this.t);
+              this.t += this.dt;
+              return xyz;
+            }.bind(obj);
+          }
+
+          // static lineplot
+          else {
+              // sample from the functions
+              var start = obj.start,
+                  end = obj.end,
+                  dt = obj.step,
+                  data = [];
+              for (var t = start; t < end; t += dt) {
+                data.push(f(t));
+              }obj.data = data;
+            }
+        })();
+      }
+
+      /**  BUILD THREE JS OBJECT  **/
+
+      // TODO support for custom shaders
+      var material = new THREE.LineBasicMaterial({
+        color: color,
+        linewidth: 2
+      });
+
+      // animated lineplot
+      if (obj.animated) {
+        var geometry = new THREE.Geometry();
+        geometry.dynamic = true;
+        // initialize all points in geometry to the initial point
+        var initialXyz = _SimShimUtil2.default.toVec3(obj.next());
+        for (var j = 0; j < obj.lineLength; j++) {
+          geometry.vertices.push(initialXyz);
+        } // create and attach THREE object
+        var traj = new THREE.Line(geometry, material);
+        traj.frustumCulled = false;
+        this.threeObj = traj;
+        // update function wrapper that calls "next"
+        this.update = function () {
+          this.threeObj.geometry.vertices.shift();
+          this.threeObj.geometry.vertices.push(_SimShimUtil2.default.toVec3(this.obj.next()));
+          this.threeObj.geometry.verticesNeedUpdate = true;
+        }.bind(this);
+      }
+
+      // static lineplot
+      else {
+          var geometry = new THREE.Geometry();
+          // fill the geometry with provided points
+          geometry.vertices = obj.data.map(_SimShimUtil2.default.toVec3);
+          // construct THREE object
+          this.threeObj = new THREE.Line(geometry, material);
+          // don't change geometry on update
+          this.update = function () {};
+        }
+    }
+  }, {
+    key: '_initSurface',
+    value: function _initSurface(color, shading) {
+      var obj = this.obj;
+
+      if (obj.parse) {
+        (function () {
+          // Parse the string provided and add a mesh + update function
+          var fn = void 0,
+              tree = math.parse(obj.parse),
+              symNames = _SimShimUtil2.default.uniqueSymbolNames(tree),
+              compiled = tree.compile(),
+              maxAllowedVars = 2;
+
+          // special case for animations
+          if (symNames.indexOf("t") != -1) maxAllowedVars++;
+
+          if (symNames.length <= maxAllowedVars) {
+            (function () {
+              var namesLeft = symNames.filter(function (n) {
+                return n !== 't';
+              });
+              fn = function (vars, t) {
+                var scope = { t: t };
+                namesLeft.forEach(function (n) {
+                  return scope[n] = vars.shift();
+                });
+                return compiled.eval(scope);
+              };
+            })();
+          } else {
+            throw new Error("Invalid Surfaceplot 'parse' Parameter: use 0, 1, or 2 symbols, " + "plus 't' if you are animating a surface.");
+          }
+
+          // handle animation
+          if (obj.animated) {
+            // create 'next' function
+            obj.t = obj.start;
+            obj.next = function () {
+              // sample from the fn
+              var mesh = [];
+              // construct initial condition
+              for (var x = this.minX; x < this.maxX; x += this.step) {
+                var row = [];
+                for (var y = this.minY; y < this.maxY; y += this.step) {
+                  row.push(fn([x, y], this.t));
+                }
+                mesh.push(row);
+              }
+              this.t += this.dt;
+              return mesh;
+            }.bind(obj);
+
+            // not animated
+          } else {
+            // sample from the fn
+            var data = [];
+            for (var x = obj.minX; x < obj.maxX; x += obj.step) {
+              var row = [];
+              for (var y = obj.minY; y < obj.maxY; y += obj.step) {
+                row.push(fn([x, y]));
+              };
+              data.push(row);
+            }
+            obj.data = data;
+          }
+        })();
+      } // end parsing
+
+      // materials
+      var material = new THREE.MeshLambertMaterial({
+        color: color,
+        shading: shading,
+        side: THREE.DoubleSide
+      });
+      if (obj.wireframe) {
+        // TODO fix
+        var _wireframeMaterial = new THREE.MeshBasicMaterial({
+          color: obj.wireframeColor || 0xeeeeee,
+          wireframe: true,
+          transparent: true
+        });
+      }
+
+      if (obj.animated) {
+
+        var geometry = _SimShimUtil2.default.makeSurfaceGeometry(obj.minX, obj.minY, obj.maxX, obj.maxY, obj.next());
+        geometry.computeFaceNormals();
+        geometry.computeVertexNormals();
+
+        if (obj.wireframe) {
+          // TODO wireframes
+          var multiMaterial = [material, wireframeMaterial];
+          this.threeObj = THREE.SceneUtils.createMultiMaterialObject(geometry, multiMaterial);
+        } else {
+          this.threeObj = new THREE.Mesh(geometry, material);
+        }
+        this.update = function () {
+          var o = this.obj;
+          // replace entire geometry object
+          // TODO better implementation
+          var geo = _SimShimUtil2.default.makeSurfaceGeometry(o.minX, o.minY, o.maxX, o.maxY, o.next());
+          geo.computeFaceNormals();
+          geo.computeVertexNormals();
+          geo.verticesNeedUpdate = true; // flag for update
+          // threeJS holds references to geometries in object3Ds,
+          // so we must call .dispose() to avoid memory leaks
+          this.threeObj.geometry.dispose();
+          this.threeObj.geometry = geo;
+        }.bind(this);
+      } else {
+        var geometry = _SimShimUtil2.default.makeSurfaceGeometry(obj.minX, obj.minY, obj.maxX, obj.maxY, obj.data);
+        geometry.computeFaceNormals();
+        geometry.computeVertexNormals();
+        this.threeObj = new THREE.Mesh(geometry, material);
+        // don't change geometry
+        this.update = function () {};
+      }
+
+      // Rotate the surface by inputting...
+      //   * a quaternion (4 component array or THREE.Quaternion) that
+      //     is applied to the mesh, or
+      //   * a vector (3 component array or THREE.Vector3) that is interpretted
+      //     as a transformation of the vector (0,0,1). A quaternion is
+      //     interpolated from the input and (0,0,1), and this is used to
+      //     rotate the surface. This is just provided as a quick way to get
+      //     a rough rotation in place, and the resulting surface might be
+      //     rotated around in an undesirable way.
+      if (obj.rotation) {
+        var q = void 0;
+        if (obj.rotation instanceof THREE.Quaternion) {
+          q = rotation;
+        } else if (obj.rotation.length === 4) {
+          q = new THREE.Quaternion().fromArray(obj.rotation);
+        } else {
+          var up = new THREE.Vector3(0, 0, 1);
+          var rotn = _SimShimUtil2.default.toVec3(obj.rotation);
+          rotn.normalize();
+          q = new THREE.Quaternion().setFromUnitVectors(up, rotn);
+        }
+        this.threeObj.setRotationFromQuaternion(q);
+      };
+    }
+  }]);
+
+  return SimShimPlot;
+}();
+
+exports.default = SimShimPlot;
+});
+
+;require.register("SimShimPlotCtx.js", function(exports, require, module) {
+'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -669,290 +980,347 @@ Object.defineProperty(exports, "__esModule", {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var SimShimPlot = function () {
-  function SimShimPlot(plot, scene, color, shading) {
-    _classCallCheck(this, SimShimPlot);
+var SimShimPlotCtx = function () {
+  function SimShimPlotCtx(renderer, scene, camera, controls, light) {
+    _classCallCheck(this, SimShimPlotCtx);
 
-    // parse plottable object into an iterator that updates ThreeJS geometries
-    this.obj = plot;
-
-    switch (plot.type) {
-      case "lineplot":
-
-        /**  PARSE INPUT  **/
-
-        // convert to the 'manual' form of lineplot
-        if (plot.parse) {
-
-          // fns holds the parsed x(t), y(t), and z(t) funcitons
-          var fns = [];
-          for (var i = 0; i < plot.parse.length; i++) {
-
-            var tree = math.parse(plot.parse[i]),
-                symNames = this.uniqueSymbolNames(tree),
-                compiled = tree.compile();
-
-            if (symNames.length > 1) throw "Argument Error: " + "Please use 0 or 1 symbols for parsed lineplot functions";
-
-            fns.push(function (cpd, symNames) {
-              return function (t) {
-                var s = {};
-                if (symNames.length > 0) s[symNames[0]] = t;
-                return cpd.eval(s);
-              };
-            }(compiled, symNames));
-          }
-
-          // animated lineplot
-          if (plot.animated) {
-            // create 'next' function
-            plot.t = plot.start;
-            plot.dt = plot.step;
-            plot.next = function (fns) {
-              return function () {
-                var t = this.t,
-                    xyz = [fns[0](t), fns[1](t), fns[2](t)];
-                this.t += this.dt;
-                return xyz;
-              };
-            }(fns);
-            // set initial condition
-            plot.xyz = plot.next();
-          }
-
-          // static lineplot
-          else {
-              // sample from the fns
-              var start = plot.start,
-                  end = plot.end,
-                  dt = plot.step,
-                  data = [];
-              for (var t = start; t < end; t += dt) {
-                data.push([fns[0](t), fns[1](t), fns[2](t)]);
-              };
-              plot.data = data;
-            };
-        }
-
-        /**  BUILD THREE JS OBJECT  **/
-
-        // TODO support for custom shaders
-        var material = new THREE.LineBasicMaterial({
-          color: color,
-          linewidth: 2
-        });
-        var geometry = {};
-        var traj = {};
-
-        // animated lineplot
-        if (plot.animated) {
-
-          geometry = new THREE.Geometry();
-          geometry.dynamic = true;
-
-          // initialize all points in geometry to the initial point
-          var xyzArray = plot.next();
-          var xyz = new THREE.Vector3(xyzArray[0], xyzArray[1], xyzArray[2]);
-          for (var j = 0; j < plot.lineLength; j++) {
-            geometry.vertices.push(xyz);
-          }
-
-          traj = new THREE.Line(geometry, material);
-          traj.frustumCulled = false;
-
-          // plot
-          this.threeObj = traj;
-          this.update = function () {
-            var xyz = this.obj.next();
-            var new_xyz = new THREE.Vector3(xyz[0], xyz[1], xyz[2]);
-            this.obj.xyz = new_xyz;
-            // update trajectory
-            this.threeObj.geometry.vertices.shift();
-            this.threeObj.geometry.vertices.push(new_xyz);
-            this.threeObj.geometry.verticesNeedUpdate = true;
-          };
-        }
-
-        // static lineplot
-        else {
-            geometry = new THREE.Geometry();
-
-            // fill the geometry with provided points
-            for (var j = 0; j < plot.data.length; j++) {
-              var xyz = new THREE.Vector3(plot.data[j][0], plot.data[j][1], plot.data[j][2]);
-              geometry.vertices.push(xyz);
-            }
-
-            traj = new THREE.Line(geometry, material);
-            this.threeObj = traj;
-            // don't change geometry on update
-            this.update = function () {};
-          };
-
-        scene.add(traj);
-
-        break;
-
-      // -------------------------------------------------------------------------
-      // -------------------------------------------------------------------------
-
-      case "surfaceplot":
-
-        if (plot.parse) {
-          // convert into the other form and continue
-          var fn;
-          var tree = math.parse(plot.parse),
-              symNames = this.uniqueSymbolNames(tree),
-              compiled = tree.compile(),
-              reqNumVars = 3;
-          // special case for animations
-          if (symNames.indexOf("t") != -1) reqNumVars++;
-
-          if (symNames.length < reqNumVars) {
-            fn = function (cpd, vnames) {
-              return function (vars, t) {
-                var s = {},
-                    j = 0;
-                for (var i = 0; i < vnames.length; i++) {
-                  // NOTE: input symbols are used in order they
-                  // appear in the input funciton string (except t)
-                  if (typeof t != "undefined" && vnames[i] === "t") {
-                    s["t"] = t;
-                    j++;
-                  } else {
-                    s[vnames[i]] = vars[i - j];
-                  };
-                };
-                return cpd.eval(s);
-              };
-            }(compiled, symNames);
-          } else {
-            throw "Invalid Surfaceplot 'parse' Parameter: use 0, 1, or 2 symbols, " + "plus 't' if you are animating a surface.";
-          }
-          // now we have a fns array
-          // handle animation
-          if (plot.animated) {
-            // create 'next' function
-            plot.t = plot.start;
-            plot.dt = plot.step;
-            plot.next = function (fn) {
-              return function () {
-                // sample from the fn
-                var minX = this.minX,
-                    maxX = this.maxX,
-                    minY = this.minY,
-                    maxY = this.maxY,
-                    t = this.t,
-                    dt = this.dt,
-                    mesh = [];
-                // construct initial condition
-                for (var i = minX; i < maxX; i += dt) {
-                  var row = [];
-                  for (var j = minY; j < maxY; j += dt) {
-                    row.push(fn([i, j], t));
-                  };
-                  mesh.push(row);
-                };
-                this.t += dt;
-                return mesh;
-              };
-            }(fn);
-            // set initial condition
-            plot.mesh = plot.next();
-          } else {
-            // sample from the fn
-            var minX = plot.minX,
-                maxX = plot.maxX,
-                minY = plot.minY,
-                maxY = plot.maxY,
-                step = plot.step,
-                data = [];
-            for (var i = minX; i < maxX; i += step) {
-              var row = [];
-              for (var j = minY; j < maxY; j += step) {
-                row.push(fn([i, j]));
-              };
-              data.push(row);
-            }
-            plot.data = data;
-          }
-        } // end parsing
-
-        // materials
-        var material = new THREE.MeshLambertMaterial({
-          color: color,
-          shading: shading,
-          side: THREE.DoubleSide
-        });
-        if (plot.wireframe) {
-          var wireframeMaterial = new THREE.MeshBasicMaterial({
-            color: plot.wireframeColor || 0xeeeeee,
-            wireframe: true,
-            transparent: true
-          });
-        }
-
-        // forward declare
-        var geometry = {};
-        var mesh = {};
-
-        if (plot.animated) {
-          geometry = this.makeSurface(plot.minX, plot.minY, plot.maxX, plot.maxY, plot.mesh);
-          geometry.computeFaceNormals();
-          geometry.computeVertexNormals();
-          if (plot.wireframe) {
-            var multiMaterial = [material, wireframeMaterial];
-            mesh = THREE.SceneUtils.createMultiMaterialObject(geometry, multiMaterial);
-          } else {
-            mesh = new THREE.Mesh(geometry, material);
-          }
-          this.threeObj = mesh;
-          this.update = function () {
-            var plt = this.obj;
-            plt.mesh = plt.next();
-            // replace entire geometry object
-            // TODO better implementation
-            var geo = this.makeSurface(plt.minX, plt.minY, plt.maxX, plt.maxY, plt.mesh);
-            geo.computeFaceNormals();
-            geo.computeVertexNormals();
-            geo.verticesNeedUpdate = true; // flag for update
-            // threeJS holds references to geometries in object3Ds,
-            // so we must call .dispose() to avoid memory leaks
-            this.threeObj.geometry.dispose();
-            this.threeObj.geometry = geo;
-          };
-        } else {
-          geometry = this.makeSurface(plot.minX, plot.minY, plot.maxX, plot.maxY, plot.data);
-          geometry.computeFaceNormals();
-          geometry.computeVertexNormals();
-          mesh = new THREE.Mesh(geometry, material);
-          this.threeObj = mesh;
-          // don't change geometry
-          this.update = function () {};
-        };
-
-        // rotate to specified normal
-        if (plot.rotation) {
-          var up = new THREE.Vector3(0, 0, 1);
-          var rotn = new THREE.Vector3(plot.rotation[0], plot.rotation[1], plot.rotation[2]);
-          rotn.normalize();
-          var q = new THREE.Quaternion().setFromUnitVectors(up, rotn);
-          mesh.setRotationFromQuaternion(q);
-        };
-
-        // add to scene and quit
-        scene.add(mesh);
-
-        break;
-
-      // -------------------------------------------------------
-      // TODO: "ode3", "pde3", "graph", ...
-    }
+    this.renderer = renderer;
+    this.scene = scene;
+    this.camera = camera;
+    this.controls = controls;
+    this.light = light;
+    this.plots = [];
   }
 
-  _createClass(SimShimPlot, [{
-    key: "makeSurface",
-    value: function makeSurface(minX, minY, maxX, maxY, data) {
+  _createClass(SimShimPlotCtx, [{
+    key: 'updateMetrics',
+    value: function updateMetrics() {
+      // init (also defaults for when no plots exist)
+      var res = {
+        'maxX': 0, 'maxY': 0, 'maxZ': 0,
+        'minX': 0, 'minY': 0, 'minZ': 0,
+        'midX': 0, 'midY': 0, 'midZ': 0,
+        'distX': 1, 'distY': 1, 'distZ': 1
+      };
+
+      // set Max and Min helper
+      function setMaxMin(data) {
+        for (var j = 0; j < data.length; j++) {
+          var px = data[j][0] || data[j].x,
+              py = data[j][1] || data[j].y,
+              pz = data[j][2] || data[j].z;
+          // set max
+          res.maxX = px > res.maxX ? px : res.maxX;
+          res.maxY = py > res.maxY ? py : res.maxY;
+          res.maxZ = pz > res.maxZ ? pz : res.maxZ;
+          // set min
+          res.minX = px < res.minX ? px : res.minX;
+          res.minY = py < res.minY ? py : res.minY;
+          res.minZ = pz < res.minZ ? pz : res.minZ;
+        }
+      }
+
+      // if plots exist, update these values
+      if (this.plots.length) {
+
+        // iterate
+        this.plots.forEach(function (plt) {
+          if (plt.threeObj) setMaxMin(plt.threeObj.geometry.vertices);else console.warn('SimShimPlot found with no THREEjs object');
+        });
+
+        // compute extra metrics
+        res.midX = (res.maxX + res.minX) / 2;
+        res.midY = (res.maxY + res.minY) / 2;
+        res.midZ = (res.maxZ + res.minZ) / 2;
+        res.distX = (res.maxX - res.minX) / 2;
+        res.distY = (res.maxY - res.minY) / 2;
+        res.distZ = (res.maxZ - res.minZ) / 2;
+      }
+
+      // computed metrics
+
+      res.maxDist = Math.sqrt(Math.pow(res.distX, 2) + Math.pow(res.distY, 2) + Math.pow(res.distZ, 2));
+      res.center = new THREE.Vector3(res.midX, res.midY, res.midZ);
+
+      // set and return
+
+      this.metrics = res;
+      return res;
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      this.renderer.render(this.scene, this.camera);
+    }
+  }]);
+
+  return SimShimPlotCtx;
+}();
+
+exports.default = SimShimPlotCtx;
+});
+
+;require.register("SimShimSanitize.js", function(exports, require, module) {
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// This messy class is intended to give useful error messages when the API is
+// used incorrectly.
+
+var SimShimSanitize = function () {
+  function SimShimSanitize() {
+    _classCallCheck(this, SimShimSanitize);
+  }
+
+  _createClass(SimShimSanitize, null, [{
+    key: '_handle',
+    value: function _handle(str, policy) {
+      switch (policy) {
+        case 'error':
+          console.error(str);
+          break;
+        case 'warn':
+          console.warn(str);
+          break;
+        default:
+          throw new Error(str);
+      }
+    }
+
+    // everything is optional in settings
+
+  }, {
+    key: 'checkSettings',
+    value: function checkSettings(settings) {
+      var policy = arguments.length <= 1 || arguments[1] === undefined ? 'warn' : arguments[1];
+
+      var s = [],
+          i = function i(x, o) {
+        return x instanceof o;
+      },
+          t = function t(obj, str) {
+        return (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === str;
+      };
+
+      if (!t(settings.far, 'undefined') && !t(settings.far, 'number')) s.push('The "far" setting must be a number');
+      if (!t(settings.near, 'undefined') && !t(settings.near, 'number')) s.push('The "near" setting must be a number');
+      if (!t(settings.cameraAngle, 'undefined') && !t(settings.cameraAngle, 'number')) s.push('The "cameraAngle" setting must be a number');
+      if (!t(settings.lightIntensity, 'undefined') && !t(settings.lightIntensity, 'number')) s.push('The "lightIntensity" setting must be a number');
+
+      if (settings.ctrlType && !t(settings.ctrlType, 'string')) s.push('The "ctrlType" setting must be a string');
+      if (settings.clearColor && !t(settings.clearColor, 'string')) s.push('The "clearColor" setting must be a string');
+
+      if (settings.showGrid && !t(settings.showGrid, 'boolean')) s.push('The "showGrid" setting must be a boolean');
+      if (settings.showAxes && !t(settings.showAxes, 'boolean')) s.push('The "showAxes" setting must be a boolean');
+      if (settings.autoRotate && !t(settings.autoRotate, 'boolean')) s.push('The "autoRotate" setting must be a boolean');
+
+      if (settings.cameraPosn && !(i(settings.cameraPosn, Array) || i(settings.cameraPosn, THREE.Vector3))) s.push('The "cameraPosn" setting must be an array or THREE.Vector3');
+      if (settings.orbitTarget && !(i(settings.orbitTarget, Array) || i(settings.orbitTarget, THREE.Vector3))) s.push('The "orbitTarget" setting must be an array or THREE.Vector3');
+
+      if (s.length) this._handle(s.join('\n'), policy);
+    }
+
+    // some required fields exist in plot objects. Ugly conditional nesting
+    // required to drill down and provide useful errors.
+
+  }, {
+    key: 'checkPlotObj',
+    value: function checkPlotObj(plot) {
+      var policy = arguments.length <= 1 || arguments[1] === undefined ? 'warn' : arguments[1];
+
+      var s = [],
+          i = function i(x, o) {
+        return x instanceof o;
+      },
+          t = function t(obj, str) {
+        return (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === str;
+      },
+          all = function all(stuff, cond) {
+        return stuff.findIndex(function (x) {
+          return !cond(x);
+        }) == -1;
+      },
+          isArr = function isArr(x) {
+        return i(x, Array);
+      },
+          isNum = function isNum(x) {
+        return t(x, 'number');
+      },
+          isNumArr = function isNumArr(x) {
+        return all(x, function (y) {
+          return isNum(y);
+        });
+      },
+          isNumArr2D = function isNumArr2D(pts) {
+        return all(pts, function (pt) {
+          return isArr(pt) && isNumArr(pt);
+        });
+      },
+          x = void 0 // use this with the comma operator to save a bit of space
+      ;
+
+      // OPTIONAL
+
+      if (x = plot.label, x && !t(x, 'string')) s.push('The "label" attribute must be a string');
+      if (x = plot.rotation, x && !(isNumArr(x) || i(x, THREE.Quaternion))) s.push('The "rotation" attribute must be an array of numbers (a rotation of [0,0,1] that will be applied to the plot) or a THREE.Quaternion');
+
+      // REQUIRED
+
+      if (x = plot.type, !x || !t(x, 'string')) s.push('The "type" attribute is required and must be a string');else {
+
+        if (plot.type == 'lineplot') {
+          // ===============================================================================================
+
+          if (plot.parse) {
+
+            if (x = plot.parse, !isArr(x) || !all(x, function (y) {
+              return t(y, 'string');
+            })) s.push('The "parse" attribute must be an array of strings');
+            if (!isNum(plot.start)) s.push('A parsed lineplot requires a "start" attribute (initial t value)');
+            if (!isNum(plot.step)) s.push('A parsed lineplot requires a "step" attribute (timestep between t values)');
+
+            if (plot.animated) {
+              // lineplot, parsed, animated
+
+              if (!isNum(plot.lineLength)) s.push('This type of lineplot requires a "lineLength" attribute (animated lines have finite length)');
+            } else {// lineplot, parsed, not animated
+
+              // handled above.
+
+            }
+          } else {
+
+            if (plot.animated) {
+              // lineplot, not parsed, animated
+
+              if (!isNum(plot.lineLength)) s.push('This type of lineplot requires a "lineLength" attribute (animated lines have finite length)');
+              if (x = plot.next, !x || !t(x, 'function')) s.push('This type of lineplot requires a "next" attribute (a function producing the next point)');
+            } else {
+              // lineplot, not parsed, not animated
+
+              if (x = plot.data, !x || !isArr(x) || !isNumArr2D(x)) s.push('This type of lineplot requires a "next" attribute (a function producing the next point)');
+            }
+          }
+        } else if (plot.type == 'surfaceplot') {
+          // =====================================================================================
+
+          if (!isNum(plot.minX)) s.push('Surfaceplots require the "minX" attribute (minimum x value)');
+          if (!isNum(plot.maxX)) s.push('Surfaceplots require the "maxX" attribute (maximum x value)');
+          if (!isNum(plot.minY)) s.push('Surfaceplots require the "minY" attribute (minimum y value)');
+          if (!isNum(plot.maxY)) s.push('Surfaceplots require the "maxY" attribute (maxmium y value)');
+
+          if (plot.parse) {
+
+            if (!isNum(plot.step)) s.push('A parsed surfaceplot requires the "step" attribute (interval between adjascent x and y values)');
+            if (x = plot.parse, !x || !t(x, 'string')) s.push('A parsed surfaceplot requires the "parse" attribute, which must be a string representing an expression for z, ie the "f" in "z=f(x,y)" (ex: "sin(x)*y", "t*x*y", etc. Don\'t forget to add the "animated" attribute and a "t" in the function if you want it to be animated)');
+
+            if (plot.animated) {
+              // surfaceplot, parsed, animated
+
+              if (!isNum(plot.start)) s.push('A parsed, animated surfaceplot requires the "start" attribute (initial time value)');
+              if (!isNum(plot.dt)) s.push('A parsed, animated surfaceplot requires the "dt" attribute (time step per frame)');
+            } else {// surfaceplot, parsed, not animated
+
+              // handled above.
+
+            }
+          } else {
+
+            if (plot.animated) {
+              // surfaceplot, not parsed, animated
+
+              if (x = plot.next, !x || !t(x, 'function')) s.push('An animated surfaceplot requires a "next" attribute (provides the a new 2D array of heights each frame) or a "parse" attribute');
+            } else {
+              // surfaceplot, not parsed, not animated
+
+              if (x = plot.data, !x || !isArr(x) || !isNumArr2D(x)) s.push('This type of surfaceplot requires the "data" attribute (2D array of height values)');
+            }
+          }
+        }
+      }
+
+      if (s.length) this._handle(s.join('\n'), policy);
+    }
+  }]);
+
+  return SimShimSanitize;
+}();
+
+exports.default = SimShimSanitize;
+});
+
+;require.register("SimShimUtil.js", function(exports, require, module) {
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// import * as RKStuff from './runge-kutta';
+//
+// window.SimShimUtil = RKStuff;
+
+var SimShimUtil = function () {
+  function SimShimUtil() {
+    _classCallCheck(this, SimShimUtil);
+  }
+
+  _createClass(SimShimUtil, null, [{
+    key: 'toVec3',
+    value: function toVec3(o) {
+      if (o instanceof THREE.Vector3) return o;
+      if (o instanceof Array) return new THREE.Vector3().fromArray(o);
+      console.error('Cannot coerce into Vector3');
+    }
+  }, {
+    key: 'toQuat',
+    value: function toQuat(o) {
+      if (o instanceof THREE.Quaternion) return o;
+      if (o instanceof Array) return new THREE.Quaternion().fromArray(o);
+      console.error('Cannot coerce into Vector3');
+    }
+
+    // helper for mathjs expression parsing. In particular for evalutation and
+    // determining if "t" was used (interpretted as time)
+
+  }, {
+    key: 'uniqueSymbolNames',
+    value: function uniqueSymbolNames(tree) {
+      // return the unique symbolNodes of tree
+      // filter the SymbolNodes out
+      var arr = tree.filter(function (node) {
+        return node.type == 'SymbolNode';
+      });
+      // get unique list of names
+      var dummy = {},
+          names = [];
+      for (var i = 0, l = arr.length; i < l; ++i) {
+        if (!dummy.hasOwnProperty(arr[i].name)) {
+          names.push(arr[i].name);
+          dummy[arr[i].name] = 1;
+        }
+      }
+      return names;
+    }
+
+    // convert 2D array of data into a THREEjs geometry with faces and vertices
+
+  }, {
+    key: 'makeSurfaceGeometry',
+    value: function makeSurfaceGeometry(minX, minY, maxX, maxY, data) {
       var geometry = new THREE.Geometry();
       // add vertices
       var wid = data[0].length;
@@ -986,77 +1354,15 @@ var SimShimPlot = function () {
 
       return geometry;
     }
-  }, {
-    key: "uniqueSymbolNames",
-    value: function uniqueSymbolNames(tree) {
-      // return the unique symbolNodes of tree
-      // filter the SymbolNodes out
-      var arr = tree.filter(function (node) {
-        return node.type == 'SymbolNode';
-      });
-      // get unique list of names
-      var dummy = {},
-          names = [];
-      for (var i = 0, l = arr.length; i < l; ++i) {
-        if (!dummy.hasOwnProperty(arr[i].name)) {
-          names.push(arr[i].name);
-          dummy[arr[i].name] = 1;
-        }
-      }
-      return names;
-    }
   }]);
 
-  return SimShimPlot;
+  return SimShimUtil;
 }();
 
-exports.default = SimShimPlot;
+exports.default = SimShimUtil;
 });
 
-;require.register("SimShimPlotCtx.js", function(exports, require, module) {
-"use strict";
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var SimShimPlotCtx = function () {
-  function SimShimPlotCtx(renderer, scene, camera, controls, light) {
-    _classCallCheck(this, SimShimPlotCtx);
-
-    this.renderer = renderer;
-    this.scene = scene;
-    this.camera = camera;
-    this.controls = controls;
-    this.light = light;
-    this.plots = [];
-  }
-
-  _createClass(SimShimPlotCtx, [{
-    key: "render",
-    value: function render() {
-      this.renderer.render(this.scene, this.camera);
-    }
-  }]);
-
-  return SimShimPlotCtx;
-}();
-
-exports.default = SimShimPlotCtx;
-});
-
-;require.register("SimShimUtil.js", function(exports, require, module) {
-// import * as RKStuff from './runge-kutta';
-//
-// window.SimShimUtil = RKStuff;
-"use strict";
-});
-
-require.register("UtilFunctional.js", function(exports, require, module) {
+;require.register("UtilFunctional.js", function(exports, require, module) {
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1072,7 +1378,7 @@ function add(x1, x2) {
 }
 
 function zip(x1, x2) {
-  if (x1.length != x2.length) throw 'zip: lists not same length';else return zipRec(x1, x2, []);
+  if (x1.length != x2.length) throw new Error('zip: lists not same length');else return zipRec(x1, x2, []);
 }
 
 function zipRec(x1, x2, zipped) {
@@ -97039,13 +97345,13 @@ THREE.OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype )
 sim-shim-js
 https://github.com/codemaker1999/sim-shim-js
 The MIT License
-Copyright © 2016 John Meade
+Copyright (c) 2016 John Meade
 
 three.js
 http://threejs.org
 https://github.com/mrdoob/three.js/
 The MIT License
-Copyright © 2010-2016 three.js authors
+Copyright (c) 2010-2016 three.js authors
 
 math.js
 http://mathjs.org

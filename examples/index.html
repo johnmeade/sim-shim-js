@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <title>SimShim Examples</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="index.css">
+  </head>
+  <body>
+    <div id="left-pane">
+      <p id="expl">Note: remember to retarget the plot by double-clicking</p>
+      <div id='buttons'>
+        <button class='btn' id='run-btn'>Run</button>
+        <button class='btn' id='reset-text-btn'>Reset Text</button>
+      </div>
+      <select id="select-box">
+        <option>Select an example</option>
+      </select>
+      <div id="editor"></div>
+    </div>
+    <div id="plot"></div>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="../assets/js/sim-shim-bundle.js"></script>
+    <script type="text/javascript" src="../assets/js/ace/src-min/ace.js"></script>
+    <script type="text/javascript" src="../assets/js/editor-manager.js"></script>
+    <script type="text/javascript" src="../assets/js/plot-manager.js"></script>
+    <script type="text/javascript" src="index.js"></script>
+  </body>
+</html>
