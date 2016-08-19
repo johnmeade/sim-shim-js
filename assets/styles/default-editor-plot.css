@@ -1,33 +1,40 @@
 body {
-    background-color: #222;
+  background-color: #222;
 }
+
+
 #plot {
-    width: 60vw;
-    height: 100vh;
-    position: absolute;
-    top: 0;
-    right: 0;
+  width: 60vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  right: 0;
 }
+
+
 #editor {
-    width: 40vw;
-    height: 100vh;
-    position: absolute;
-    top: 0;
-    left: 0;
+  width: 40vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
-#run-btn {
-    width: 60px;
-    height: 30px;
-    position: absolute;
-    top: 70px;
-    right: 67vw;
-    z-index: 1000;
+
+
+#buttons {
+  position: absolute;
+  right: 62vw;
+  top: 10px;
+  height: auto;
+  width: auto;
+  z-index: 9999999;
 }
-#reset-text-btn {
-    width: 140px;
-    height: 30px;
-    position: absolute;
-    top: 20px;
-    right: 67vw;
-    z-index: 1000;
+
+
+.btn {
+  width: auto;
+  /*height: 30px;*/
+  font-family: monospace;
+  font-size: 14pt;
+  margin-left: 10px;
 }

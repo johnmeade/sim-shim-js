@@ -25,10 +25,10 @@
 |*|
 |*/
 
-var pi   = math.PI,
-    pow  = math.pow,
-    sin  = math.sin,
-    sinh = math.sinh,
+var pi   = Math.PI,
+    pow  = Math.pow,
+    sin  = Math.sin,
+    sinh = Math.sinh,
     v0   = 1,         // constant potential
     l    = 1,         // side length
     eps  = 0.00005,   // tolerance
@@ -70,7 +70,7 @@ function iterMesh(mesh) {
           l = (i-1)<0   ? 0  : mesh[ j ][i-1],
           r = (i+2)>wdt ? 0  : mesh[ j ][i+1],
           m_ji = (1/4)*(u+d+l+r),
-          dif = math.abs(m_ji-mesh[j][i]);
+          dif = Math.abs(m_ji-mesh[j][i]);
       row.push(m_ji);
       maxVal = maxVal > dif ? maxVal : dif;
     }
@@ -80,6 +80,7 @@ function iterMesh(mesh) {
 }
 
 var plt = {
+  // required properties
   "type"     : "surfaceplot",
   "animated" : true,
   "minX"     : 0,
@@ -87,16 +88,12 @@ var plt = {
   "maxX"     : 1,
   "maxY"     : 1,
   "start"    : 0,
-  "mesh"     : createMesh(0,0,1,1,dx, guess),
-  "done"     : false,
   "next"     : function () {
-    var thismesh = this.mesh;
-
     // stop if we are below tolerance
-    if (this.done) return thismesh;
+    if (this.done) return this.mesh;
 
     // iterate mesh
-    var res = iterMesh(thismesh);
+    var res = iterMesh(this.mesh);
     var maxdif = res[1];
     var newMesh = res[0];
 
@@ -104,11 +101,15 @@ var plt = {
     if (maxdif < eps) this.done = true;
 
     // return new mesh
+    this.mesh = newMesh;
     return newMesh;
-  }
+  },
+  // custom properties
+  "mesh": createMesh(0,0,1,1,dx, guess),
+  "done": false
 };
 
-var SimShim = require('SimShim');
+
 var ss = new SimShim(
   document.getElementById("plot"),
   {

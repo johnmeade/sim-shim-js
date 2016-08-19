@@ -26,7 +26,6 @@ var plt = {
   "data": sineBlanket(-10,-10,10,10,0.5)
 };
 
-// var SimShim = require('SimShim');
-// var ss = new SimShim('#plot');
-// ss.addPlot( plt );
-// ss.start();
+var ss = new SimShim('#plot');
+ss.addPlot( plt );
+ss.start();

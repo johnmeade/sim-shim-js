@@ -8,10 +8,10 @@
 |*|
 |*/
 
-var pi    = math.PI,
-    pow   = math.pow,
-    sin   = math.sin,
-    sinh  = math.sinh,
+var pi    = Math.PI,
+    pow   = Math.pow,
+    sin   = Math.sin,
+    sinh  = Math.sinh,
     terms = 20, // 10 non-zero terms + 10 zero terms
     v0    = 1,
     l     = 1,
@@ -58,7 +58,7 @@ var plt = {
   "data": createMesh(0, 0, l, l, dx, z),
 };
 
-var SimShim = require('SimShim');
+
 var ss = new SimShim(
   document.getElementById("plot"),
   {

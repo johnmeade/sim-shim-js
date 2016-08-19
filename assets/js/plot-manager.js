@@ -1,27 +1,24 @@
 
-function PlotManager(opt) {
+function PlotManager() {
 
-  // unpack
-  var plotId = opt.plotId,
-      SimShim = require('SimShim'),
-      scope = {};
-
-  if (plotId[0] !== '#') plotId = '#'+plotId;
+  var ssInstances = [];
 
   // update plots
   function updatePlot(code) {
-    // stop current plots
-    for (var x in scope) {
-      var y = scope[x];
-      if (y instanceof SimShim) y.kill();
-    }
-    scope = {};
-    $(plotId).empty();
-    // run new code
-    try {
-      eval.call(scope, code);
-    } catch (e) {
-      console.error(e)
+    // remove dead references
+    ssInstances = ssInstances.filter(function(ss) {
+      return (ss instanceof SimShim)
+    });
+    // try to stop the simulation (unavoidable memory leaks here...)
+    ssInstances.map(function (ss) {
+      ss.removeAllObjects();
+      ss.setPaused(true);
+    });
+    // bit of a hack to force eval in global scope
+    (function(code) {eval.call(this,code)}(code));
+    // gather up all the SimShim references we can find
+    for (var k in window) {
+      if (window[k] instanceof SimShim) ssInstances.push(window[k])
     }
   }
 

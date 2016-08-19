@@ -41,7 +41,6 @@ var plt = {
   "data": createMesh(minX, minY, maxX, maxY, dx, z),
 };
 
-// var SimShim = require('SimShim');
-// var ss = new SimShim('#plot');
-// ss.addPlot( plt );
-// ss.start();
+var ss = new SimShim('#plot');
+ss.addPlot( plt );
+ss.start();

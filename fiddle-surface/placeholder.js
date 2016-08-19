@@ -21,12 +21,12 @@ var minX = -2.5,
     maxX = 2.5,
     maxY = 2.5,
     dx   = 0.03,
-    pow = math.pow,
-    sqrt = math.sqrt,
-    sin = math.sin,
-    cos = math.cos,
-    ln = math.log,
-    abs = math.abs
+    pow = Math.pow,
+    sqrt = Math.sqrt,
+    sin = Math.sin,
+    cos = Math.cos,
+    ln = Math.log,
+    abs = Math.abs
     ;
 
 function z (x,y) {
@@ -56,7 +56,7 @@ var plt = {
   "data": createMesh(minX, minY, maxX, maxY, dx, z),
 };
 
-var SimShim = require('SimShim');
+
 var ss = new SimShim(
   document.getElementById("plot")
 );

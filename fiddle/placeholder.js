@@ -1,16 +1,20 @@
 /*
-
-This is an live demo of plotter-js.
+This is an live fiddle / demo of sim-shim.
 
 Notes
-* If you do not plot a static object, you might need
-to double-click the plot once it turns black in
-order to see anything
-* Drag mouse to orbit and scroll to zoom
-* Double-click the plot to retarget the camera
-* Click the "run" button to execute this code and
-replace the contents of the plot
-* The plot target is a div with id "plot"
+* Basic saving is supported. When you click the run button, the contents of the
+  editor are saved to your browser. This is useful for playing around, but
+  you should save a copy of anything important on your computer!
+* For reasons outside of my control, it is very difficult to remove objects
+  from memory that have been plotted. If this page gets slow, save a copy of
+  your code and refresh the page
+
+Controls
+* Double-click the plot to re-center the camera
+* Drag mouse to orbit
+* Scroll to zoom
+* The "Reset Editor Text" button will revert this code to it's original form
+* The "Run" button will run the code here in your browser and update the plot
 
 */
 
@@ -26,7 +30,6 @@ var animHelix = {
   "type": "lineplot",
   "animated": true,
   "lineLength": 10000, // animations must be fixed length
-  "xyz": [-2,-1,0], // initial condition
   // The "next" function must return the next point each frame.
   // Here, it creates a spiral
   "next": function () {
@@ -44,7 +47,6 @@ var wireCube = {
   "type": "lineplot",
   "animated": true,
   "lineLength": 300, // animations must be fixed length
-  "xyz": [2,2,0], // initial point
   // The "next" function must return the next point each frame.
   // Here, it just returns a random point in the unit cube
   "next": function () {
@@ -56,7 +58,7 @@ var wireCube = {
 };
 
 // import library
-var SimShim = require('SimShim');
+
 
 // intantiate a sim-shim object
 var ss = new SimShim(
