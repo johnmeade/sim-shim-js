@@ -1,13 +1,20 @@
-import SimShimSanitize from 'SimShimSanitize';
-import SimShimPlotCtx from 'SimShimPlotCtx';
-import SimShimPlot from 'SimShimPlot';
-import SimShimUtil from 'SimShimUtil';
+import THREE from 'three'
 
-module.exports = class SimShim {
+import SimShimSanitize from './SimShimSanitize'
+import SimShimPlotCtx from './SimShimPlotCtx'
+import SimShimPlot from './SimShimPlot'
+import SimShimUtil from './SimShimUtil'
+
+import FlyControls from '../vendor/threejs-extras/FlyControls'
+import OrbitControls from '../vendor/threejs-extras/OrbitControls'
+
+
+export default class SimShim {
+
 
   constructor(plotTarget, settings = {}) {
-    this.ids = [];
-    this.paused = false;
+    this.ids = []
+    this.paused = false
 
     /*\
     |*|  Sanitize
@@ -17,44 +24,44 @@ module.exports = class SimShim {
 
     if (typeof plotTarget === 'string') {
       // '#plot'
-      plotTarget = document.querySelector(plotTarget);
+      plotTarget = document.querySelector(plotTarget)
     } else if (plotTarget instanceof Array) {
       // $('.plot')
-      plotTarget = plotTarget[0];
+      plotTarget = plotTarget[0]
     }
 
     if (!(plotTarget instanceof Element)) {
-      throw new Error('First argument of SimShim constructor must be a selector string, jquery selection array, or an Element');
+      throw new Error('First argument of SimShim constructor must be a selector string, jquery selection array, or an Element')
     }
 
-    SimShimSanitize.checkSettings(settings, 'throw');
+    SimShimSanitize.checkSettings(settings, 'throw')
 
     /*\
     |*|  Unpack / Initialize Settings
     \*/
 
-    let setns = {};
+    let setns = {}
 
-    setns.userDefinedCam     = Boolean(settings.cameraPosn);
-    setns.far                = settings.far            || 500;
-    setns.near               = settings.near           || 0.005;
-    setns.showGrid           = settings.showGrid       || true; // TODO
-    setns.showAxes           = settings.showAxes       || true; // TODO
-    setns.ctrlType           = settings.ctrlType       || "orbit";
-    setns.clearColor         = settings.clearColor     || "#111";
-    setns.autoRotate         = settings.autoRotate     || false;
-    setns.cameraPosn         = settings.cameraPosn     || [0,0,0];
-    setns.cameraAngle        = settings.cameraAngle    || 45;
-    setns.orbitTarget        = settings.orbitTarget    || [0,0,0];
-    setns.lightIntensity     = settings.lightIntensity || 0.85;
+    setns.userDefinedCam     = Boolean(settings.cameraPosn)
+    setns.far                = settings.far            || 500
+    setns.near               = settings.near           || 0.005
+    setns.showGrid           = settings.showGrid       || true // TODO
+    setns.showAxes           = settings.showAxes       || true // TODO
+    setns.ctrlType           = settings.ctrlType       || "orbit"
+    setns.clearColor         = settings.clearColor     || "#111"
+    setns.autoRotate         = settings.autoRotate     || false
+    setns.cameraPosn         = settings.cameraPosn     || [0,0,0]
+    setns.cameraAngle        = settings.cameraAngle    || 45
+    setns.orbitTarget        = settings.orbitTarget    || [0,0,0]
+    setns.lightIntensity     = settings.lightIntensity || 0.85
 
     /*\
     |*|  Conversions
     \*/
 
     // accept arrays from users, but work with Vector3 internally
-    setns.cameraPosn = SimShimUtil.toVec3( setns.cameraPosn );
-    setns.orbitTarget = SimShimUtil.toVec3( setns.orbitTarget );
+    setns.cameraPosn = SimShimUtil.toVec3( setns.cameraPosn )
+    setns.orbitTarget = SimShimUtil.toVec3( setns.orbitTarget )
 
     /*\
     |*|  Constants
@@ -73,7 +80,7 @@ module.exports = class SimShim {
           ORBITTARGET   = setns.orbitTarget,
           LIGHTINTESITY = setns.lightIntensity,
           CLEARCOLOR    = new THREE.Color( setns.clearColor )
-          ;
+
 
     /*\
     |*|  Set up ThreeJS
@@ -82,72 +89,70 @@ module.exports = class SimShim {
     // -----------------------------------------------------
     // Renderer
 
-    var renderer = new THREE.WebGLRenderer({
-        // TODO expose more options?
-        // scale: SCALE,
-        // brightness: 2,
-        // antialias: true
-    });
-    renderer.setSize( WIDTH, HEIGHT );
-    // renderer.domElement.style.top = "0px";
-    // renderer.domElement.style.left = "0px";
-    renderer.domElement.style.margin = "0px";
-    renderer.domElement.style.padding = "0px";
-    renderer.setClearColor( CLEARCOLOR );
-    plotTarget.appendChild( renderer.domElement );
+    if (!window.__simshim_renderer__)
+      window.__simshim_renderer__ = new THREE.WebGLRenderer({
+          // TODO expose more options?
+          // scale: SCALE,
+          // brightness: 2,
+          // antialias: true
+      })
+    let renderer = window.__simshim_renderer__
+    renderer.setSize( WIDTH, HEIGHT )
+    // renderer.domElement.style.top = "0px"
+    // renderer.domElement.style.left = "0px"
+    renderer.domElement.style.margin = "0px"
+    renderer.domElement.style.padding = "0px"
+    renderer.setClearColor( CLEARCOLOR )
+    plotTarget.appendChild( renderer.domElement )
 
     // -----------------------------------------------------
     // Scene
 
-    var scene = new THREE.Scene();
+    let scene = new THREE.Scene()
 
     // -----------------------------------------------------
     // Camera
 
-    var camera = new THREE.PerspectiveCamera(CAMANGLE, WIDTH/HEIGHT, NEAR, FAR);
-    camera.position.set( CAMERAPOSN );
-    camera.up = new THREE.Vector3(0,0,1);
-    camera.lookAt( ORBITTARGET );
-    scene.add(camera);
+    let camera = new THREE.PerspectiveCamera(CAMANGLE, WIDTH/HEIGHT, NEAR, FAR)
+    camera.position.set( CAMERAPOSN )
+    camera.up = new THREE.Vector3(0,0,1)
+    camera.lookAt( ORBITTARGET )
+    scene.add(camera)
 
     // -----------------------------------------------------
     // Controls
 
-    var controls;
+    let controls
     switch (CTRLTYPE) {
 
       case "fly":
-        if (!THREE.FlyControls) throw new Error("Error: "+
-          "Please include FlyControls.js before plotting");
-        controls = new THREE.FlyControls( camera );
-        controls.dragToLook = true;
-        break;
+        controls = new FlyControls( camera )
+        controls.dragToLook = true
+        break
 
       case "orbit":
-        if (!THREE.OrbitControls) throw new Error("Error: "+
-          "Please include OrbitControls.js before plotting");
-        controls = new THREE.OrbitControls( camera, renderer.domElement );
-        controls.target.set( ORBITTARGET );
-        controls.autoRotate = AUTOROT;
-        break;
+        controls = new OrbitControls( camera, renderer.domElement )
+        controls.target.set( ORBITTARGET )
+        controls.autoRotate = AUTOROT
+        break
 
       default:
-        throw new Error(`Argument Error: Invalid control type "${CTRLTYPE}"`);
-        break;
+        throw new Error(`[SimShim] Argument Error: Invalid control type "${CTRLTYPE}"`)
+        break
 
     }
 
     // -----------------------------------------------------
     // Light
 
-    var light = new THREE.DirectionalLight( 0xffffff, LIGHTINTESITY );
-    scene.add(light);
+    let light = new THREE.DirectionalLight( 0xffffff, LIGHTINTESITY )
+    scene.add(light)
 
     // -----------------------------------------------------
     // Animate
 
     // create plot context
-    this.plotCtx = new SimShimPlotCtx(renderer, scene, camera, controls, light);
+    this.plotCtx = new SimShimPlotCtx(renderer, scene, camera, controls, light)
 
     // -----------------------------------------------------
     // Events
@@ -156,15 +161,14 @@ module.exports = class SimShim {
     plotTarget.addEventListener(
       'dblclick',
       (e) => {
-        if (this.plotCtx.plots.length === 0) return;
-        this.retargetCamera();
+        if (this.plotCtx.plots.length === 0) return
+        this.retargetCamera()
       },
       false
-    );
+    )
 
     // resize (only fire event after 400ms of no resize events)
     let resizeCallback
-    window.pt = plotTarget
     window.addEventListener(
       'resize',
       () => {
@@ -181,188 +185,243 @@ module.exports = class SimShim {
         )
       },
       false
-    );
+    )
 
+    // force bind the scope just in case of weird edge cases
+    this.setPaused = this.setPaused.bind(this)
+    this.isPaused = this.isPaused.bind(this)
+    this.addPlot = this.addPlot.bind(this)
+    this.addObject = this.addObject.bind(this)
+    this.getPlot = this.getPlot.bind(this)
+    this.removeObject = this.removeObject.bind(this)
+    this.removeAllObjects = this.removeAllObjects.bind(this)
+    this.removeById = this.removeById.bind(this)
+    this.setSettings = this.setSettings.bind(this)
+    this.retargetCamera = this.retargetCamera.bind(this)
+    this.animate = this.animate.bind(this)
+    this.start = this.start.bind(this)
   }
+
 
   setPaused (bool) {
-    this.paused = bool;
+    this.paused = bool
   }
 
+
   isPaused() {
-    return this.paused;
+    return this.paused
   }
+
 
   addPlot (plot, settings = {}) {
     try {
 
-      SimShimSanitize.checkPlotObj(plot, 'throw'); // throws
+      SimShimSanitize.checkPlotObj(plot, 'throw') // throws
 
       // add/parse color
-      var color = settings.color ?
+      let color = settings.color ?
                   new THREE.Color(settings.color) :
-                  new THREE.Color().setHSL(Math.random(),80/100,65/100);
+                  new THREE.Color().setHSL(Math.random(),80/100,65/100)
 
       // shading type
-      var sh;
+      let sh
       switch (settings.shading) {
         case 'smooth':
-          sh = THREE.SmoothShading;
-          break;
+          sh = THREE.SmoothShading
+          break
         case 'flat':
-          sh = THREE.FlatShading;
-          break;
+          sh = THREE.FlatShading
+          break
         default:
-          sh = THREE.SmoothShading;
+          sh = THREE.SmoothShading
       }
 
       // make unique alpha-num string
-      var id;
-      do id = Math.random().toString(36).slice(2);
-      while (this.ids.indexOf(id) != -1);
-      this.ids.push(id);
+      let id
+      do id = Math.random().toString(36).slice(2)
+      while (this.ids.indexOf(id) != -1)
+      this.ids.push(id)
 
       // parse into wrapper
-      let ssPlot = new SimShimPlot( plot, id, color, sh ); // throws
-      this.plotCtx.scene.add( ssPlot.threeObj );
-      this.plotCtx.plots.push( ssPlot );
+      let ssPlot = new SimShimPlot( plot, id, color, sh ) // throws
+      this.plotCtx.scene.add( ssPlot.threeObj )
+      this.plotCtx.plots.push( ssPlot )
 
-      return id;
+      return id
 
     } catch (e) {
-      if (e.stack) console.error(e.stack);
-      else console.error(e);
-      console.warn('addPlot returning null');
-      return null;
+      console.error(e)
+      console.warn('[SimShim] addPlot returning null')
+      return null
     }
   }
+
 
   addObject (obj, settings = {}) {
     // add/parse color
-    var color = settings.color ?
+    let color = settings.color ?
                 new THREE.Color(settings.color) :
-                new THREE.Color().setHSL(Math.random(),80/100,65/100);
+                new THREE.Color().setHSL(Math.random(),80/100,65/100)
 
     // make unique alpha-num string
-    var id;
-    do id = Math.random().toString(36).slice(2);
-    while (this.ids.indexOf(id) != -1);
+    let id
+    do id = Math.random().toString(36).slice(2)
+    while (this.ids.indexOf(id) != -1)
 
-    this.ids.push(id);
-    obj.id = id;
+    this.ids.push(id)
+    obj.id = id
 
-    this.plotCtx.plots.push( obj );
-    if (obj.threeObj) this.plotCtx.scene.add( obj.threeObj );
+    this.plotCtx.plots.push( obj )
+    if (obj.threeObj) this.plotCtx.scene.add( obj.threeObj )
 
-    return id;
+    return id
   }
+
 
   getPlot (id) {
-    return this.plotCtx.plots.find( (p) => p.id == id );
+    return this.plotCtx.plots.find( (p) => p.id == id )
   }
 
-  // remove all SimShimPlots and pause
-  kill () {
-    for (let i=0; i<this.plotCtx.plots.length; i++) {
-      let p = this.plotCtx.plots[i];
-      this.plotCtx.scene.remove( p.threeObj );
+
+  removeObject(o) {
+    console.warn('[SimShim] the removeObject method is experimental and '+
+      'might not completely free up memory')
+    this.plotCtx.scene.remove( o )
+    if (o.threeObj) {
+      this.plotCtx.scene.remove( o.threeObj )
+      if (o.threeObj.geometry) {
+        o.threeObj.geometry.dispose()
+        o.threeObj.geometry = undefined
+      }
+      if (o.threeObj.dispose) o.threeObj.dispose()
+      o.threeObj = undefined
     }
-    this.plotCtx.plots = [];
-    this.ids = [];
-    this.paused = true;
+    if (typeof o.dispose === 'function') o.dispose()
   }
+
+
+  // attempt to obliterate all objects, using THREEjs API and internal API
+  removeAllObjects() {
+    console.warn('[SimShim] the removeAllObjects method is experimental and '+
+      'might not completely free up memory')
+    // SimShim
+    this.plotCtx.plots.forEach(this.removeObject)
+    // THREEjs
+    let scene = this.plotCtx.scene
+    if (scene.__objects) scene.__objects.forEach(function(obj, idx) {
+      scene.remove(obj)
+      if (obj.geometry) obj.geometry.dispose()
+      if (obj.material) {
+        if (obj.material instanceof THREE.MeshFaceMaterial) {
+          obj.material.materials.forEach(function(mat, idx) {
+            mat.dispose()
+          })
+        } else obj.material.dispose()
+      }
+      if (obj.dispose) obj.dispose()
+    })
+    // reset containers / remove references
+    this.plotCtx.plots = []
+    this.ids = []
+    this.paused = true
+  }
+
 
   removeById (id) {
-    let idIdx = this.ids.indexOf( id );
-    let plotIdx = this.plotCtx.plots.findIndex((p) => p.id == id);
-    if (idIdx == -1) console.warn(`Plot id ${id} not tracked by SimShim (did you use the 'addPlot' method?)`);
-    else this.ids.splice( idIdx, 1 );
-    if (plotIdx == -1) console.warn(`No plot with id ${id} found, no plots removed`);
+    let idIdx = this.ids.indexOf( id )
+    let plotIdx = this.plotCtx.plots.findIndex((p) => p.id == id)
+    if (idIdx == -1) console.warn(`[SimShim] Plot id ${id} not found`)
+    else this.ids.splice( idIdx, 1 )
+    if (plotIdx == -1) console.warn(`[SimShim] No plot with id ${id} found, no plots removed`)
     else {
-      this.plotCtx.scene.remove( this.plotCtx.plots[plotIdx].threeObj );
-      this.plotCtx.plots.splice( plotIdx, 1 );
+      this.removeObject( this.plotCtx.plots[plotIdx] )
+      this.plotCtx.plots.splice( plotIdx, 1 )
     }
   }
+
 
   // replace any given settings
   setSettings (settings = {}) {
 
-    SimShimSanitize.checkSettings(settings, 'warn');
+    SimShimSanitize.checkSettings(settings, 'warn')
 
     for (let k in settings) {
       switch (k) {
         case 'cameraPosn':
-          this.plotCtx.camera.position.setX(settings[k][0]);
-          this.plotCtx.camera.position.setY(settings[k][1]);
-          this.plotCtx.camera.position.setZ(settings[k][2]);
-          this.plotCtx.camera.updateProjectionMatrix();
-          break;
+          this.plotCtx.camera.position.setX(settings[k][0])
+          this.plotCtx.camera.position.setY(settings[k][1])
+          this.plotCtx.camera.position.setZ(settings[k][2])
+          this.plotCtx.camera.updateProjectionMatrix()
+          break
         case 'cameraAngle':
-          this.plotCtx.camera.fov = settings[k];
-          this.plotCtx.camera.updateProjectionMatrix();
-          break;
+          this.plotCtx.camera.fov = settings[k]
+          this.plotCtx.camera.updateProjectionMatrix()
+          break
         case 'orbitTarget':
-          this.plotCtx.controls.target.setX(settings[k][0]);
-          this.plotCtx.controls.target.setY(settings[k][1]);
-          this.plotCtx.controls.target.setZ(settings[k][2]);
-          this.plotCtx.controls.update(1);
-          break;
+          this.plotCtx.controls.target.setX(settings[k][0])
+          this.plotCtx.controls.target.setY(settings[k][1])
+          this.plotCtx.controls.target.setZ(settings[k][2])
+          this.plotCtx.controls.update(1)
+          break
         case 'lightIntensity':
-          this.plotCtx.light.intensity = settings[k];
-          break;
+          this.plotCtx.light.intensity = settings[k]
+          break
         case 'autoRotate':
-          this.plotCtx.controls.autoRotate = settings[k];
-          break;
+          this.plotCtx.controls.autoRotate = settings[k]
+          break
         default:
-          console.warn(`Cannot modify setting "${k}", skipping this key`);
-          break;
+          console.warn(`[SimShim] Cannot modify setting "${k}", skipping this key`)
+          break
       }
     }
   }
 
+
   retargetCamera () {
-    var M = this.plotCtx.updateMetrics(),
+    let M = this.plotCtx.updateMetrics(),
         relativeCameraPosn = new THREE.Vector3(
             M.distX, M.distY, M.distZ
         ).multiplyScalar(3),
-        cameraPosn = relativeCameraPosn.add(M.center);
+        cameraPosn = relativeCameraPosn.add(M.center)
     // Camera
-    this.plotCtx.camera.position.x = cameraPosn.x;
-    this.plotCtx.camera.position.y = cameraPosn.y;
-    this.plotCtx.camera.position.z = cameraPosn.z;
-    this.plotCtx.camera.lookAt(M.center);
-    if (THREE.OrbitControls && this.plotCtx.controls instanceof THREE.OrbitControls) {
-      this.plotCtx.controls.target.copy(M.center);
-    };
+    this.plotCtx.camera.position.x = cameraPosn.x
+    this.plotCtx.camera.position.y = cameraPosn.y
+    this.plotCtx.camera.position.z = cameraPosn.z
+    this.plotCtx.camera.lookAt(M.center)
+    if (this.plotCtx.controls instanceof OrbitControls) {
+      this.plotCtx.controls.target.copy(M.center)
+    }
   }
+
 
   animate () {
     // loop
-    window.requestAnimationFrame( () => { this.animate() } );
+    window.requestAnimationFrame( () => { this.animate() } )
 
     // increment iterator plot objects
     if (!this.paused) {
-      for (var j = 0; j < this.plotCtx.plots.length; j++) {
-        this.plotCtx.plots[j].update();
+      for (let j = 0; j < this.plotCtx.plots.length; j++) {
+        this.plotCtx.plots[j].update()
       }
 
       // update controls and lights
-      this.plotCtx.controls.update( 1 );
-      this.plotCtx.light.position.copy( this.plotCtx.camera.position );
-      this.plotCtx.light.lookAt( this.plotCtx.metrics.center );
+      this.plotCtx.controls.update( 1 )
+      this.plotCtx.light.position.copy( this.plotCtx.camera.position )
+      this.plotCtx.light.lookAt( this.plotCtx.metrics.center )
     }
 
     // render
-    this.plotCtx.render();
+    this.plotCtx.render()
   }
 
+
   start () {
-    this.plotCtx.render();
+    this.plotCtx.render()
 
     // Update Scene (Lights, Camera)
-    if (!this.userDefinedCam) this.retargetCamera();
-    this.plotCtx.light.position.copy( this.plotCtx.camera.position );
-    this.plotCtx.light.lookAt( this.plotCtx.metrics.center );
+    if (!this.userDefinedCam) this.retargetCamera()
+    this.plotCtx.light.position.copy( this.plotCtx.camera.position )
+    this.plotCtx.light.lookAt( this.plotCtx.metrics.center )
 
     // polyfill animation frames
     window.requestAnimationFrame = window.requestAnimationFrame
@@ -370,8 +429,9 @@ module.exports = class SimShim {
                                 || window.mozRequestAnimationFrame
                                 || window.oRequestAnimationFrame
                                 || window.msRequestAnimationFrame
-                                || ((cb) => window.setTimeout( cb, 1000 / 60 ));
+                                || ((cb) => window.setTimeout( cb, 1000 / 60 ))
     // start the render loop
-    this.animate();
+    this.animate()
   }
+
 }

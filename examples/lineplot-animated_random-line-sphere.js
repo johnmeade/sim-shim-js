@@ -13,7 +13,6 @@ var plt = {
   }
 };
 
-// var SimShim = require('SimShim');
 // var ss = new SimShim('#plot');
 // ss.addPlot( plt );
 // ss.start();

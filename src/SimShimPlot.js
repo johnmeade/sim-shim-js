@@ -1,3 +1,6 @@
+import THREE from 'three'
+import math from 'mathjs'
+
 import SimShimUtil from './SimShimUtil';
 
 

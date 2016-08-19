@@ -1,16 +1,3 @@
-**Notice**: Breaking Change
-------------------------
-
-The library has been moved to a CommonJS pattern.
-The new API requires that you add the following line:
-```js
-var SimShim = require('SimShim');
-// Now, as before:
-//   var ss = new SimShim( target );
-//   ss.addPlot( plt );
-//   ...
-```
-
 
 3D Plotting and Animation Using WebGL
 ======================================
@@ -30,10 +17,67 @@ Examples
 ---------
 
 There is an included set of examples that demonstrates all supported uses of
-the library (along with some common tasks like ODE simulation) in the
-`examples` folder (ignore the `index.*` files). Check them out
-[here](http://codemaker1999.github.io/sim-shim-js) (or spin up a dev server and
-go to `localhost:xxxx/examples`).
+the library in the `examples` folder. See them in action (and fiddle with them)
+[here](http://codemaker1999.github.io/sim-shim-js).
+
+
+Importing
+----------
+
+This is a fairly large library, and so it will likely need a bit of time for
+your browser to load it. Because you cannot be sure how browsers will
+handle this, you should wait for the page to load before running any JS files
+that instantiate `SimShim`. The error you get when the library is not yet
+loaded will look something like this:
+```
+Uncaught TypeError: SimShim is not a constructor
+```
+
+To wait for the library to load, you can do one of the following:
+
+* Add a `defer` attribute to the `<script>` tag with your javascript that uses
+  the library
+  ```html
+  <script src=".../sim-shim-bundle.js"></script>
+  <script defer src=".../your-file.js"></script>
+  ```
+
+* If you're using JQuery, you can import the library using JS (meaning you
+  don't need to have a `<script>` tag for `sim-shim-bundle.js` in your html
+  at all) like this:
+  ```js
+  $.getScript(".../sim-shim-bundle.js", function(){
+    var ss = new SimShim('#plot');
+    // ...
+  });
+  ```
+
+* If you would like to have the `<script>` tag to import, you can also set up
+  listeners for the event signifying the page has been loaded. To do this,
+  put your SimShim code inside a function, say this one:
+  ```js
+  function yourCoolInitializer() {
+    var ss = new SimShim('#plot');
+    // ...
+  }
+  ```
+
+  Then, if you are using JQuery, you now just have to do the following:
+  ```js
+  $(window).load(yourCoolInitializer)
+  ```
+
+  If you are using plain JS it's a bit messier, as there are several ways to do
+  the listening because of differing browser compatibility:
+  ```js
+  if (window.addEventListener) {
+    window.addEventListener("load", yourCoolInitializer, false);
+  } else if (window.attachEvent) {
+    window.attachEvent("onload", yourCoolInitializer);
+  } else {
+    window.onload = yourCoolInitializer;
+  }
+  ```
 
 
 Usage
@@ -56,7 +100,6 @@ var square = {
     "data": [[0,0,0], [1,0,0], [1,1,0], [0,1,0], [0,0,0]]
 };
 
-var SimShim = require('SimShim');
 var ss = new SimShim('#plot-div');
 // or "var ss = new SimShim(document.getElementById('plot-div'));"
 // or "var ss = new SimShim($('#plot-div'));"
@@ -79,7 +122,6 @@ var animSpiral = {
     "lineLength": 10000
 };
 
-var SimShim = require('SimShim');
 var ss = new SimShim('#plot-div');
 ss.addPlot( animSpiral );
 ss.start();
@@ -99,7 +141,6 @@ var blanket = {
     "step"  : 1/10
 };
 
-var SimShim = require('SimShim');
 var ss = new SimShim('#plot-div');
 ss.addPlot( blanket );
 ss.start();
@@ -122,7 +163,6 @@ var pulsingBlanket = {
     "dt"   : 1/20
 };
 
-var SimShim = require('SimShim');
 var ss = new SimShim('#plot-div');
 ss.addPlot( pulsingBlanket );
 ss.start();
@@ -166,28 +206,20 @@ Notes and Tips
 Building
 ---------
 
-Bower is used for grabbing dependencies, and brunch is used for compilation.
-To set up:
+To build the un-minified files:
 
-```
+```bash
 npm install
-bower install
+# only un-minified files:
+npm build
+npm watch
+# build both dev and production
+npm buildall
 ```
-
-Then, to build:
-
-```
-brunch build
-brunch build --production
-```
-
-Note: the `--production` flag generates the minified files
 
 
 What's Next?
 -------------
-
-* Resizing support (I've been putting this one off for a while...)
 
 * GUI features like buttons for fullscreen, floating plot labels, etc
 

@@ -18,4 +18,11 @@ https://github.com/josdejong/mathjs
 Apache License
 Version 2.0, January 2004
 http://www.apache.org/licenses/
+
+chai.js
+http://chaijs.com
+https://github.com/chaijs/chai
+The MIT License
+Copyright (c) 2011-2015 Jake Luer jake@alogicalparadox.com
+
 */

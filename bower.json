@@ -1,7 +1,0 @@
-{
-  "name": "sim-shim-js",
-  "dependencies": {
-    "mathjs": "http://cdnjs.cloudflare.com/ajax/libs/mathjs/3.2.1/math.js",
-    "threejs": "http://cdnjs.cloudflare.com/ajax/libs/three.js/r78/three.js"
-  }
-}

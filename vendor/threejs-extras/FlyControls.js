@@ -2,7 +2,14 @@
  * @author James Baicoianu / http://www.baicoianu.com/
  */
 
-THREE.FlyControls = function ( object, domElement ) {
+ /**
+  * converted for use with ES6 by John Meade 2016
+  */
+
+import THREE from 'three'
+
+
+export default function FlyControls( object, domElement ) {
 
 	this.object = object;
 

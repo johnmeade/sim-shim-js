@@ -12,7 +12,6 @@ var plt = {
   "step": 1/10
 };
 
-// var SimShim = require('SimShim');
 // var ss = new SimShim('#plot');
 // ss.addPlot( plt );
 // ss.start();

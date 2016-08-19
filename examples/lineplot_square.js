@@ -7,7 +7,6 @@ var plt = {
   "data": [ [0,0,0], [1,0,0], [1,0,1], [0,0,1], [0,0,0] ]
 }
 
-// var SimShim = require('SimShim');
 // var ss = new SimShim('#plot');
 // ss.addPlot( plt );
 // ss.start();

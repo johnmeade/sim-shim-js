@@ -14,7 +14,6 @@ var plt = {
   "dt"   : 1/20
 };
 
-// var SimShim = require('SimShim');
 // var ss = new SimShim('#plot');
 // ss.addPlot( plt );
 // ss.start();

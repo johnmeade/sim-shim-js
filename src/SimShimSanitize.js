@@ -1,18 +1,22 @@
 // This messy class is intended to give useful error messages when the API is
 // used incorrectly.
 
+import THREE from 'three'
+import chai from 'chai'
+
+
 export default class SimShimSanitize {
 
   static _handle(str, policy) {
     switch (policy) {
       case 'error':
-        console.error(str);
+        console.error('[SimShim] '+str);
         break;
       case 'warn':
-        console.warn(str);
+        console.warn('[SimShim] '+str);
         break;
       default:
-        throw new Error(str);
+        throw new Error('[SimShim] '+str);
     }
   }
 

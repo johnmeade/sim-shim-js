@@ -1,6 +1,5 @@
-// import * as RKStuff from './runge-kutta';
-//
-// window.SimShimUtil = RKStuff;
+import THREE from 'three'
+
 
 export default class SimShimUtil {
 

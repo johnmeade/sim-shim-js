@@ -1,3 +1,6 @@
+import THREE from 'three'
+
+
 export default class SimShimPlotCtx {
   constructor (renderer, scene, camera, controls, light) {
     this.renderer = renderer;
