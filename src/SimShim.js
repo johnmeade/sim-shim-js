@@ -2,8 +2,9 @@ import THREE from 'three'
 
 import SimShimSanitize from './SimShimSanitize'
 import SimShimPlotCtx from './SimShimPlotCtx'
-import SimShimPlot from './SimShimPlot'
+import SimShimObj from './SimShimObj'
 import SimShimUtil from './SimShimUtil'
+import { ParseError } from './Errors'
 
 import FlyControls from '../vendor/threejs-extras/FlyControls'
 import OrbitControls from '../vendor/threejs-extras/OrbitControls'
@@ -12,6 +13,19 @@ import OrbitControls from '../vendor/threejs-extras/OrbitControls'
 export default class SimShim {
 
 
+  /**
+   * Creates a new instance of SimShim. You can have as many instances as you
+   * want, but you should probably avoid this when possible.
+   *
+   * @param {string OR Element OR JQuery selection array} plotTarget - The
+   *   renderer will be attached to this element. It can be specified as a
+   *   string (querySelector) which will be queried, an Element which is used
+   *   directly, or the output of a JQuery query like `$('#my-plot-div')`
+   *
+   * @param {JSON Object} settings - [Optional] Specify additional details such
+   *   as where the camera should be positioned / pointing, the background color
+   *   of the plot, the light intensity to shine on the plot (for surfaces), etc
+   */
   constructor(plotTarget, settings = {}) {
     this.ids = []
     this.paused = false
@@ -43,17 +57,17 @@ export default class SimShim {
     let setns = {}
 
     setns.userDefinedCam     = Boolean(settings.cameraPosn)
-    setns.far                = settings.far            || 500
-    setns.near               = settings.near           || 0.005
-    setns.showGrid           = settings.showGrid       || true // TODO
-    setns.showAxes           = settings.showAxes       || true // TODO
-    setns.ctrlType           = settings.ctrlType       || "orbit"
-    setns.clearColor         = settings.clearColor     || "#111"
-    setns.autoRotate         = settings.autoRotate     || false
-    setns.cameraPosn         = settings.cameraPosn     || [0,0,0]
-    setns.cameraAngle        = settings.cameraAngle    || 45
-    setns.orbitTarget        = settings.orbitTarget    || [0,0,0]
-    setns.lightIntensity     = settings.lightIntensity || 0.85
+    setns.far                = settings.far                || 500
+    setns.near               = settings.near               || 0.005
+    setns.showGrid           = settings.showGrid           || true // TODO
+    setns.showAxes           = settings.showAxes           || true // TODO
+    setns.ctrlType           = settings.ctrlType           || "orbit"
+    setns.clearColor         = settings.clearColor         || "#111"
+    setns.autoRotate         = settings.autoRotate         || false
+    setns.cameraPosn         = settings.cameraPosn         || [0,0,0]
+    setns.cameraAngle        = settings.cameraAngle        || 45
+    setns.orbitTarget        = settings.orbitTarget        || [0,0,0]
+    setns.lightIntensity     = settings.lightIntensity     || 0.85
 
     /*\
     |*|  Conversions
@@ -161,13 +175,13 @@ export default class SimShim {
     plotTarget.addEventListener(
       'dblclick',
       (e) => {
-        if (this.plotCtx.plots.length === 0) return
+        if (this.plotCtx.objects.length === 0) return
         this.retargetCamera()
       },
       false
     )
 
-    // resize (only fire event after 400ms of no resize events)
+    // resize (only fire event after 500ms of no resize events)
     let resizeCallback
     window.addEventListener(
       'resize',
@@ -181,7 +195,7 @@ export default class SimShim {
             camera.updateProjectionMatrix()
             renderer.setSize( W, H )
           },
-          400
+          500
         )
       },
       false
@@ -189,10 +203,10 @@ export default class SimShim {
 
     // force bind the scope just in case of weird edge cases
     this.setPaused = this.setPaused.bind(this)
-    this.isPaused = this.isPaused.bind(this)
+    this.getPaused = this.getPaused.bind(this)
     this.addPlot = this.addPlot.bind(this)
     this.addObject = this.addObject.bind(this)
-    this.getPlot = this.getPlot.bind(this)
+    this.getById = this.getById.bind(this)
     this.removeObject = this.removeObject.bind(this)
     this.removeAllObjects = this.removeAllObjects.bind(this)
     this.removeById = this.removeById.bind(this)
@@ -203,16 +217,36 @@ export default class SimShim {
   }
 
 
+  /**
+   * Pause or unpause the animation with this setter
+   *
+   * @param {boolean} bool - Truthy values are coerced into booleans
+   */
   setPaused (bool) {
-    this.paused = bool
+    this.paused = Boolean(bool)
   }
 
 
-  isPaused() {
+  /**
+   * @returns {boolean} - True if the animation is paused
+   */
+  getPaused() {
     return this.paused
   }
 
 
+  /**
+   * Creates a SimShimObj with the provided plot manifest
+   *
+   * @param {JSON Object} plot - The manifest of the plot object you would like
+   *   generated
+   *
+   * @param {JSON Object} settings - [Optional] Additional options modifying the
+   *   colour of the plot object and it's shading (for surfaces)
+   *
+   * @returns {string} - Alpha-numeric string ID to later retrieve the
+   *   object with
+   */
   addPlot (plot, settings = {}) {
     try {
 
@@ -224,16 +258,16 @@ export default class SimShim {
                   new THREE.Color().setHSL(Math.random(),80/100,65/100)
 
       // shading type
-      let sh
+      let shading
       switch (settings.shading) {
         case 'smooth':
-          sh = THREE.SmoothShading
+          shading = THREE.SmoothShading
           break
         case 'flat':
-          sh = THREE.FlatShading
+          shading = THREE.FlatShading
           break
         default:
-          sh = THREE.SmoothShading
+          shading = THREE.SmoothShading
       }
 
       // make unique alpha-num string
@@ -243,25 +277,43 @@ export default class SimShim {
       this.ids.push(id)
 
       // parse into wrapper
-      let ssPlot = new SimShimPlot( plot, id, color, sh ) // throws
+      let ssPlot = SimShimObj.fromPlotManifest( id, plot, { color, shading } ) // throws
       this.plotCtx.scene.add( ssPlot.threeObj )
-      this.plotCtx.plots.push( ssPlot )
+      this.plotCtx.objects.push( ssPlot )
 
       return id
 
     } catch (e) {
-      console.error(e)
+      if (e.stack) console.error(e.stack)
+      else console.error(e)
       console.warn('[SimShim] addPlot returning null')
       return null
     }
   }
 
 
-  addObject (obj, settings = {}) {
-    // add/parse color
-    let color = settings.color ?
-                new THREE.Color(settings.color) :
-                new THREE.Color().setHSL(Math.random(),80/100,65/100)
+  /**
+   * Creates a SimShimObj with optional ThreeJS object and an optional update
+   * function to be called in the render loop.
+   *
+   * @param {THREE.Object3D} threeObj - [Optional] if an Object3D is given here,
+   *   it is added to the scene.
+   *
+   * @param {function()} updateFunction - [Optional] if a function is given here,
+   *   it is added to the render loop and called every frame.
+   *
+   * @returns {string} - Alpha-numeric string ID to later retrieve the
+   *   object with
+   *
+   * @example
+   * var ss = new SimShim('#plot-div');
+   * ss.addObject(null, myCoolFunc);
+   * ss.addObject(myCoolObject, null);
+   */
+  addObject (threeObj, updateFunction) {
+
+    if (!(threeObj instanceof THREE.Object3D)) threeObj = null
+    if (typeof updateFunction !== 'function') updateFunction = () => {}
 
     // make unique alpha-num string
     let id
@@ -269,20 +321,33 @@ export default class SimShim {
     while (this.ids.indexOf(id) != -1)
 
     this.ids.push(id)
-    obj.id = id
-
-    this.plotCtx.plots.push( obj )
-    if (obj.threeObj) this.plotCtx.scene.add( obj.threeObj )
+    this.plotCtx.objects.push( new SimShimObj(id, {}, threeObj, updateFunction) )
+    if (threeObj) this.plotCtx.scene.add( threeObj )
 
     return id
   }
 
 
-  getPlot (id) {
-    return this.plotCtx.plots.find( (p) => p.id == id )
+  /**
+   * Retrieve a plot based on it's ID. IDs are returned by the `addPlot` and
+   * `addObject` methods.
+   *
+   * @param {string} id - The ID to search for
+   *
+   * @returns {SimShimObj} - The matching object or undefined if nothing matched
+   */
+  getById (id) {
+    return this.plotCtx.objects.find( o => o.id == id )
   }
 
 
+  /**
+   * Does it's best to remove the object and any associated structures. This
+   * process is experimental because ThreeJS has questionable support for this
+   * at the moment.
+   *
+   * @param {THREE.Object3D or SimShimObj} o - The object to attempt removal of
+   */
   removeObject(o) {
     console.warn('[SimShim] the removeObject method is experimental and '+
       'might not completely free up memory')
@@ -300,12 +365,18 @@ export default class SimShim {
   }
 
 
-  // attempt to obliterate all objects, using THREEjs API and internal API
+  /**
+   * A more thorough method than `removeObject`, this method tries removing all
+   * objects and also tries iterating through the ThreeJS structures and
+   * calling various disposal methods. This method is also very experimental,
+   * and should not be relied upon too much (or at all if you don't want
+   * memory leaks!)
+   */
   removeAllObjects() {
     console.warn('[SimShim] the removeAllObjects method is experimental and '+
       'might not completely free up memory')
     // SimShim
-    this.plotCtx.plots.forEach(this.removeObject)
+    this.plotCtx.objects.forEach(this.removeObject)
     // THREEjs
     let scene = this.plotCtx.scene
     if (scene.__objects) scene.__objects.forEach(function(obj, idx) {
@@ -321,26 +392,36 @@ export default class SimShim {
       if (obj.dispose) obj.dispose()
     })
     // reset containers / remove references
-    this.plotCtx.plots = []
+    this.plotCtx.objects = []
     this.ids = []
     this.paused = true
   }
 
 
+  /**
+   * Remove a plot by it's ID. This attempts to remove the ThreeJS objects
+   * from memory, but this process has questionable results, so memory leaks
+   * may occur.
+   */
   removeById (id) {
+    console.warn('[SimShim] the removeById method is experimental and '+
+      'might not completely free up memory')
     let idIdx = this.ids.indexOf( id )
-    let plotIdx = this.plotCtx.plots.findIndex((p) => p.id == id)
+    let plotIdx = this.plotCtx.objects.findIndex(p => p.id == id)
     if (idIdx == -1) console.warn(`[SimShim] Plot id ${id} not found`)
     else this.ids.splice( idIdx, 1 )
     if (plotIdx == -1) console.warn(`[SimShim] No plot with id ${id} found, no plots removed`)
     else {
-      this.removeObject( this.plotCtx.plots[plotIdx] )
-      this.plotCtx.plots.splice( plotIdx, 1 )
+      this.removeObject( this.plotCtx.objects[plotIdx] )
+      this.plotCtx.objects.splice( plotIdx, 1 )
     }
   }
 
 
-  // replace any given settings
+  /**
+   * Replace a subset of global settings at runtime. Currently supports
+   * cameraPosn, cameraAngle, orbitTarget, lightIntensity, and autoRotate
+   */
   setSettings (settings = {}) {
 
     SimShimSanitize.checkSettings(settings, 'warn')
@@ -377,6 +458,11 @@ export default class SimShim {
   }
 
 
+  /**
+   * Manually trigger camera to retarget. This will place the camera a
+   * reasonable distance back from the action and fixes where it is looking
+   * to a point near the middle of the action.
+   */
   retargetCamera () {
     let M = this.plotCtx.updateMetrics(),
         relativeCameraPosn = new THREE.Vector3(
@@ -400,8 +486,8 @@ export default class SimShim {
 
     // increment iterator plot objects
     if (!this.paused) {
-      for (let j = 0; j < this.plotCtx.plots.length; j++) {
-        this.plotCtx.plots[j].update()
+      for (let j = 0; j < this.plotCtx.objects.length; j++) {
+        this.plotCtx.objects[j].update()
       }
 
       // update controls and lights

@@ -1,10 +1,15 @@
-// This messy class is intended to give useful error messages when the API is
-// used incorrectly.
-
 import THREE from 'three'
-import chai from 'chai'
+// import chai from 'chai'
+
+import { newParseError } from './Errors'
 
 
+/**
+ * When a plot manifest is added, it is sent through this class before parsing
+ * to check for correctness. This allows you to basically guess your way through
+ * creating a plot manifest, as you'll be told exactly what needs to be changed
+ * to accomplish what this class *thinks* you're trying to do.
+ */
 export default class SimShimSanitize {
 
   static _handle(str, policy) {
@@ -16,7 +21,7 @@ export default class SimShimSanitize {
         console.warn('[SimShim] '+str);
         break;
       default:
-        throw new Error('[SimShim] '+str);
+        throw newParseError('[SimShim] '+str);
     }
   }
 

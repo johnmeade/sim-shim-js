@@ -24,7 +24,7 @@ the library in the `examples` folder. See them in action (and fiddle with them)
 Importing
 ----------
 
-This is a fairly large library, and so it will likely need a bit of time for
+This is a fairly large library, and so it might take a bit of time for
 your browser to load it. Because you cannot be sure how browsers will
 handle this, you should wait for the page to load before running any JS files
 that instantiate `SimShim`. The error you get when the library is not yet
@@ -41,6 +41,8 @@ To wait for the library to load, you can do one of the following:
   <script src=".../sim-shim-bundle.js"></script>
   <script defer src=".../your-file.js"></script>
   ```
+  When this attribute is present (make sure the `async` attribute is not also
+  present!), the script is run when the page is finished loading.
 
 * If you're using JQuery, you can import the library using JS (meaning you
   don't need to have a `<script>` tag for `sim-shim-bundle.js` in your html
@@ -68,7 +70,7 @@ To wait for the library to load, you can do one of the following:
   ```
 
   If you are using plain JS it's a bit messier, as there are several ways to do
-  the listening because of differing browser compatibility:
+  the listening depending on which browser is being used:
   ```js
   if (window.addEventListener) {
     window.addEventListener("load", yourCoolInitializer, false);
@@ -83,9 +85,9 @@ To wait for the library to load, you can do one of the following:
 Usage
 ------
 
-Just create a valid plottable JSON object, and provide a DOM element for the plot to live in.
+Just create a valid plot manifest (JSON object), and provide a DOM element for the plot to live in.
 
-There are several types of plottable objects, including lines in 3D space,
+There are several types of manifests, including lines in 3D space,
 animated 3D lines, and surface plots. For example, to make an interactive plot
 containing a triangle and a square, you could write:
 
@@ -168,17 +170,19 @@ ss.addPlot( pulsingBlanket );
 ss.start();
 ```
 
-SimShim will figure the rest out. There are many customizable options, some of which can be found at http://codemaker1999.github.io/sim-shim-js. Decent docs are coming soon (TM)!
+Trying to remember which properties to use for specific plot types is very cumbersome, so there is a lot of built-in help for dealing with this problem. The `examples/` folder has a minimal example for each type of plot supported, so they're the best starting points. Otherwise, you can basically just guess your way through writing the manifests, as there is a built-in system that tells you (by logging errors in the console) if the manifest is missing any properties based on the type of plot you are using.
+
+Once the manifest is done, SimShim will figure the rest out. There are many customizable options, some of which can be found in the examples at http://codemaker1999.github.io/sim-shim-js.
 
 
 Controls
 ---------
 
-The scheme used for controls is a camera looking at a point in space (the orbit target) that is some distance away from this point. The camera orbits around this point by dragging the mouse, and gets closer / farther by zooming. More detail is below, with mobile phone browser instructions in square brackets.
+The scheme used for controls is a camera looking at a point in space (the orbit target) that is some distance away from this point. The camera orbits around this point when the mouse is dragged, and gets closer / farther by zooming. More detail is below, with mobile phone browser instructions in square brackets.
 
 * Drag the mouse [drag your finger] to orbit the camera around
 
-* Double-click [double-tap] on the plot to retarget the camera. This computes the min and max bounds of all three.js objects in the scene and positions the camera so that is can see everything (this is very useful for animations)
+* Double-click [double-tap] on the plot to retarget the camera. This computes the min and max bounds of all objects in the scene and positions the camera so that you can see everything (this is very useful! Especially for animations!)
 
 * Scroll [pinch] to zoom closer to the camera orbit target
 
@@ -190,11 +194,11 @@ Notes and Tips
 
 * Choice of variables are mostly up to you, for example `{"parse": "sin(x*y)", ...}` is equivelant to `{"parse": "sin(r*k)", ...}`. The exception to this is "t", which will always be treated as a "time" parameter when used in a surfaceplot.
 
-* You can access the Three JS machinery through `things = ['camera', 'scene', 'renderer', 'controls', 'light']; ss.plotCtx[ things[i] ]`, and you can access the Three JS objects in the scene through `ss.plotCtx.plots[i].threeObj`.
+* You can access the Three JS machinery through `ss.plotCtx[ prop ]`, where `prop` is one of `['camera', 'scene', 'renderer', 'controls', 'light', 'objects']`, and you can access the Three JS objects in the scene through `ss.plotCtx.objects[i].threeObj`.
 
-* The `SimShim.addPlot` function returns a random string ID that is attached to the corresponding plot object `SimShim.plotCtx.plots[i].id`. To later remove a plot from the scene, do `var id = ss.addPlot( myPlot ); ss.removeById( id )`.
+* The `SimShim.addPlot` function returns a random string ID that is attached to the corresponding plot object `SimShim.plotCtx.objects[i].id`. To later remove a plot from the scene, do `var id = ss.addPlot( myPlot ); ss.removeById( id )`.
 
-* You can add your own arbitrary objects to the render loop by creating an object `obj` that has a function `obj.update()` (called every frame) and optionally a Three JS object at `obj.threeObj`. Add it to the render loop using `ss.addObject( objWithUpdateMethod )`.
+* You can add your own Three JS objects to the scene and / or add a function to the render loop by calling `ss.addObject( threeObj, updateFunction )`. Both arguments are optional, if you just need a static object or just need an update function.
 
 * If you are plotting surfaces and the page is freezeing, try reducing the min and max bounds, and increasing the step size. You can easily and accidentally end up trying to compute millions or billions of points without realizing it! This is even worse for animated surfaces, so beware!
 
@@ -205,8 +209,6 @@ Notes and Tips
 
 Building
 ---------
-
-To build the un-minified files:
 
 ```bash
 npm install

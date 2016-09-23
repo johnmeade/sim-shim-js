@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/SimShimUtil.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <a data-ice="repoURL" href="https://github.com/codemaker1999/sim-shim-js" class="repo-url-github">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShim.js~SimShim.html">SimShim</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimObj.js~SimShimObj.html">SimShimObj</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimPlotCtx.js~SimShimPlotCtx.html">SimShimPlotCtx</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimSanitize.js~SimShimSanitize.html">SimShimSanitize</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimUtil.js~SimShimUtil.html">SimShimUtil</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimUtilFunctional.js~SimShimUtil.html">SimShimUtil</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-ParseError">ParseError</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-newParseError">newParseError</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-add">add</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-push">push</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rest">rest</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sorted">sorted</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-zip">zip</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/SimShimUtil.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import THREE from &apos;three&apos;
+
+
+export default class SimShimUtil {
+
+
+  static toVec3(o) {
+    if (o instanceof THREE.Vector3) return o;
+    if (o instanceof Array) return new THREE.Vector3().fromArray(o);
+    console.error(&apos;Cannot coerce into Vector3&apos;);
+  }
+
+
+  static toQuat(o) {
+    if (o instanceof THREE.Quaternion) return o;
+    if (o instanceof Array) return new THREE.Quaternion().fromArray(o);
+    console.error(&apos;Cannot coerce into Vector3&apos;);
+  }
+
+
+  // helper for mathjs expression parsing. In particular for evalutation and
+  // determining if &quot;t&quot; was used (interpretted as time)
+  static uniqueSymbolNames (tree) {
+    // return the unique symbolNodes of tree
+    // filter the SymbolNodes out
+    var arr = tree.filter((node) =&gt; {
+      return node.type == &apos;SymbolNode&apos;;
+    });
+    // get unique list of names
+    var dummy = {}, names = [];
+    for(var i = 0, l = arr.length; i &lt; l; ++i){
+      if(!dummy.hasOwnProperty(arr[i].name)) {
+        names.push(arr[i].name);
+        dummy[arr[i].name] = 1;
+      }
+    }
+    return names;
+  }
+
+
+  // convert 2D array of data into a THREEjs geometry with faces and vertices
+  static makeSurfaceGeometry (minX,minY,maxX,maxY,data) {
+    var geometry = new THREE.Geometry();
+    // add vertices
+    var wid = data[0].length;
+    var hgt = data.length;
+    var dy = (maxY - minY)/hgt;
+    var dx = (maxX - minX)/wid;
+    for (var j = 0; j &lt; hgt; j++) {
+      for (var i = 0; i &lt; wid; i++) {
+        var v = new THREE.Vector3(
+          minX + i*dx,
+          minY + j*dy,
+          data[j][i]
+        );
+        geometry.vertices.push(v);
+      }
+    };
+    // create triangles
+    var triangles = [];
+    for (var j = 0; j &lt; hgt - 1; j++) {
+      for (var i = 0; i &lt; wid - 1; i++) {
+        // up-left, up-right, etc. points
+        var ul = data[j][i],
+            ur = data[j][i+1],
+            dl = data[j+1][i],
+            dr = data[j+1][i+1],
+            ind_ul =     j*wid + i,
+            ind_ur =     j*wid + (i+1),
+            ind_dl = (j+1)*wid + i,
+            ind_dr = (j+1)*wid + (i+1);
+        // create 2 faces from 4 points
+        geometry.faces.push(new THREE.Face3(
+          ind_ul, ind_ur, ind_dl
+        ));
+        geometry.faces.push(new THREE.Face3(
+          ind_ur, ind_dr, ind_dl
+        ));
+      }
+    }
+
+    return geometry;
+  }
+
+}
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.8)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

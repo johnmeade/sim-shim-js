@@ -3,17 +3,20 @@ import THREE from 'three'
 
 export default class SimShimUtil {
 
+
   static toVec3(o) {
     if (o instanceof THREE.Vector3) return o;
     if (o instanceof Array) return new THREE.Vector3().fromArray(o);
     console.error('Cannot coerce into Vector3');
   }
 
+
   static toQuat(o) {
     if (o instanceof THREE.Quaternion) return o;
     if (o instanceof Array) return new THREE.Quaternion().fromArray(o);
     console.error('Cannot coerce into Vector3');
   }
+
 
   // helper for mathjs expression parsing. In particular for evalutation and
   // determining if "t" was used (interpretted as time)
@@ -33,6 +36,7 @@ export default class SimShimUtil {
     }
     return names;
   }
+
 
   // convert 2D array of data into a THREEjs geometry with faces and vertices
   static makeSurfaceGeometry (minX,minY,maxX,maxY,data) {

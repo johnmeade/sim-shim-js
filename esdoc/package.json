@@ -1,0 +1,45 @@
+{
+  "name": "sim-shim",
+  "description": "3D plotting, animation, and simulation using webGL",
+  "author": "John Meade <john.meade@hbar.ca>",
+  "version": "0.2.0",
+  "main": "dist/sim-shim-bundle.js",
+  "analyze": true,
+  "license": "MIT",
+
+  "keywords": [
+    "3D",
+    "plotting",
+    "animation",
+    "simulation",
+    "webgl",
+    "surface"
+  ],
+
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "buildall": "echo [ BUILDING DEV ] && echo && webpack && echo && echo [ BUILDING PRODUCTION ] && echo && MINIFY=1 webpack"
+  },
+
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codemaker1999/sim-shim-js"
+  },
+
+  "devDependencies": {
+    "webpack": "^1.13.2",
+    "webpack-append": "^0.1.2",
+    "babel": "^6.5.2",
+    "babel-core": "^6.13.2",
+    "babel-loader": "^6.2.5",
+    "esdoc": "^0.4.8",
+    "mathjs": "^3.4.1",
+    "three": "^0.79.0",
+    "throwable": "^1.0.3"
+  },
+
+  "dependencies": {
+  }
+
+}

@@ -1,0 +1,85 @@
+{
+  "coverage": "28%",
+  "expectCount": 50,
+  "actualCount": 14,
+  "files": {
+    "src/Errors.js": {
+      "expectCount": 2,
+      "actualCount": 0,
+      "undocumentLines": [
+        4,
+        10
+      ]
+    },
+    "src/SimShim.js": {
+      "expectCount": 17,
+      "actualCount": 11,
+      "undocumentLines": [
+        13,
+        483,
+        30,
+        31,
+        169,
+        504
+      ]
+    },
+    "src/SimShimObj.js": {
+      "expectCount": 7,
+      "actualCount": 1,
+      "undocumentLines": [
+        24,
+        32,
+        25,
+        26,
+        27,
+        28
+      ]
+    },
+    "src/SimShimPlotCtx.js": {
+      "expectCount": 11,
+      "actualCount": 1,
+      "undocumentLines": [
+        15,
+        12,
+        16,
+        17,
+        75,
+        18,
+        79,
+        13,
+        14,
+        21
+      ]
+    },
+    "src/SimShimSanitize.js": {
+      "expectCount": 3,
+      "actualCount": 1,
+      "undocumentLines": [
+        55,
+        29
+      ]
+    },
+    "src/SimShimUtil.js": {
+      "expectCount": 5,
+      "actualCount": 0,
+      "undocumentLines": [
+        4,
+        42,
+        14,
+        7,
+        23
+      ]
+    },
+    "src/UtilFunctional.js": {
+      "expectCount": 5,
+      "actualCount": 0,
+      "undocumentLines": [
+        1,
+        16,
+        26,
+        21,
+        5
+      ]
+    }
+  }
+}

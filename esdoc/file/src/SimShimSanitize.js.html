@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl" href="../../">
+  <title data-ice="title">src/SimShimSanitize.js | API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <a data-ice="repoURL" href="https://github.com/codemaker1999/sim-shim-js" class="repo-url-github">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShim.js~SimShim.html">SimShim</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimObj.js~SimShimObj.html">SimShimObj</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimPlotCtx.js~SimShimPlotCtx.html">SimShimPlotCtx</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimSanitize.js~SimShimSanitize.html">SimShimSanitize</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimUtil.js~SimShimUtil.html">SimShimUtil</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimUtilFunctional.js~SimShimUtil.html">SimShimUtil</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-ParseError">ParseError</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-newParseError">newParseError</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-add">add</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-push">push</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rest">rest</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sorted">sorted</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-zip">zip</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><h1 data-ice="title">src/SimShimSanitize.js</h1>
+<pre class="source-code line-number raw-source-code"><code class="prettyprint linenums" data-ice="content">import THREE from &apos;three&apos;
+// import chai from &apos;chai&apos;
+
+import { newParseError } from &apos;./Errors&apos;
+
+
+/**
+ * When a plot manifest is added, it is sent through this class before parsing
+ * to check for correctness. This allows you to basically guess your way through
+ * creating a plot manifest, as you&apos;ll be told exactly what needs to be changed
+ * to accomplish what this class *thinks* you&apos;re trying to do.
+ */
+export default class SimShimSanitize {
+
+  static _handle(str, policy) {
+    switch (policy) {
+      case &apos;error&apos;:
+        console.error(&apos;[SimShim] &apos;+str);
+        break;
+      case &apos;warn&apos;:
+        console.warn(&apos;[SimShim] &apos;+str);
+        break;
+      default:
+        throw newParseError(&apos;[SimShim] &apos;+str);
+    }
+  }
+
+  // everything is optional in settings
+  static checkSettings(settings, policy=&apos;warn&apos;) {
+    let s = [],
+        i = (x, o) =&gt; x instanceof o,
+        t = (obj, str) =&gt; typeof obj === str
+        ;
+
+    if (!t(settings.far, &apos;undefined&apos;) &amp;&amp; !t(settings.far, &apos;number&apos;)) s.push(&apos;The &quot;far&quot; setting must be a number&apos;);
+    if (!t(settings.near, &apos;undefined&apos;) &amp;&amp; !t(settings.near, &apos;number&apos;)) s.push(&apos;The &quot;near&quot; setting must be a number&apos;);
+    if (!t(settings.cameraAngle, &apos;undefined&apos;) &amp;&amp; !t(settings.cameraAngle, &apos;number&apos;)) s.push(&apos;The &quot;cameraAngle&quot; setting must be a number&apos;);
+    if (!t(settings.lightIntensity, &apos;undefined&apos;) &amp;&amp; !t(settings.lightIntensity, &apos;number&apos;)) s.push(&apos;The &quot;lightIntensity&quot; setting must be a number&apos;);
+
+    if ( settings.ctrlType &amp;&amp; !t(settings.ctrlType, &apos;string&apos;)) s.push(&apos;The &quot;ctrlType&quot; setting must be a string&apos;);
+    if ( settings.clearColor &amp;&amp; !t(settings.clearColor, &apos;string&apos;)) s.push(&apos;The &quot;clearColor&quot; setting must be a string&apos;);
+
+    if ( settings.showGrid &amp;&amp; !t(settings.showGrid, &apos;boolean&apos;)) s.push(&apos;The &quot;showGrid&quot; setting must be a boolean&apos;);
+    if ( settings.showAxes &amp;&amp; !t(settings.showAxes, &apos;boolean&apos;)) s.push(&apos;The &quot;showAxes&quot; setting must be a boolean&apos;);
+    if ( settings.autoRotate &amp;&amp; !t(settings.autoRotate, &apos;boolean&apos;)) s.push(&apos;The &quot;autoRotate&quot; setting must be a boolean&apos;);
+
+    if ( settings.cameraPosn &amp;&amp; ! (i(settings.cameraPosn, Array) || i(settings.cameraPosn, THREE.Vector3))) s.push(&apos;The &quot;cameraPosn&quot; setting must be an array or THREE.Vector3&apos;);
+    if ( settings.orbitTarget &amp;&amp; ! (i(settings.orbitTarget, Array) || i(settings.orbitTarget, THREE.Vector3))) s.push(&apos;The &quot;orbitTarget&quot; setting must be an array or THREE.Vector3&apos;);
+
+    if (s.length) this._handle(s.join(&apos;\n&apos;), policy);
+  }
+
+  // some required fields exist in plot objects. Ugly conditional nesting
+  // required to drill down and provide useful errors.
+  static checkPlotObj(plot, policy=&apos;warn&apos;) {
+    let s = [],
+        i = (x, o) =&gt; x instanceof o,
+        t = (obj, str) =&gt; typeof obj === str,
+        all = (stuff, cond) =&gt; stuff.findIndex((x) =&gt; !cond(x)) == -1,
+        isArr = (x) =&gt; i(x, Array),
+        isNum = (x) =&gt; t(x, &apos;number&apos;),
+        isNumArr = (x) =&gt; all(x, (y) =&gt; isNum(y)),
+        isNumArr2D = (pts) =&gt; all(pts, (pt)=&gt;(isArr(pt) &amp;&amp; isNumArr(pt))),
+        x // use this with the comma operator to save a bit of space
+        ;
+
+    // OPTIONAL
+
+    if (x=plot.label, x &amp;&amp; !t(x, &apos;string&apos;)) s.push(&apos;The &quot;label&quot; attribute must be a string&apos;);
+    if (x=plot.rotation, x &amp;&amp; !(isNumArr(x) || i(x, THREE.Quaternion))) s.push(&apos;The &quot;rotation&quot; attribute must be an array of numbers (a rotation of [0,0,1] that will be applied to the plot) or a THREE.Quaternion&apos;);
+
+    // REQUIRED
+
+    if (x=plot.type, !x || !t(x, &apos;string&apos;)) s.push(&apos;The &quot;type&quot; attribute is required and must be a string&apos;);
+    else {
+
+      if (plot.type == &apos;lineplot&apos;) { // ===============================================================================================
+
+        if (plot.parse) {
+
+          if (x=plot.parse, !isArr(x) || !all(x, (y) =&gt; t(y, &apos;string&apos;))) s.push(&apos;The &quot;parse&quot; attribute must be an array of strings&apos;);
+          if (!isNum(plot.start)) s.push(&apos;A parsed lineplot requires a &quot;start&quot; attribute (initial t value)&apos;);
+          if (!isNum(plot.step)) s.push(&apos;A parsed lineplot requires a &quot;step&quot; attribute (timestep between t values)&apos;);
+
+          if (plot.animated) { // lineplot, parsed, animated
+
+            if (!isNum(plot.lineLength)) s.push(&apos;This type of lineplot requires a &quot;lineLength&quot; attribute (animated lines have finite length)&apos;);
+
+          } else { // lineplot, parsed, not animated
+
+            // handled above.
+
+          }
+        } else {
+
+          if (plot.animated) { // lineplot, not parsed, animated
+
+            if (!isNum(plot.lineLength)) s.push(&apos;This type of lineplot requires a &quot;lineLength&quot; attribute (animated lines have finite length)&apos;);
+            if (x=plot.next, !x || !t(x, &apos;function&apos;)) s.push(&apos;This type of lineplot requires a &quot;next&quot; attribute (a function producing the next point)&apos;);
+
+          } else { // lineplot, not parsed, not animated
+
+            if (x=plot.data, !x || !isArr(x) || !isNumArr2D(x)) s.push(&apos;This type of lineplot requires a &quot;next&quot; attribute (a function producing the next point)&apos;);
+
+          }
+
+        }
+
+      } else if (plot.type == &apos;surfaceplot&apos;) { // =====================================================================================
+
+        if (!isNum(plot.minX)) s.push(&apos;Surfaceplots require the &quot;minX&quot; attribute (minimum x value)&apos;);
+        if (!isNum(plot.maxX)) s.push(&apos;Surfaceplots require the &quot;maxX&quot; attribute (maximum x value)&apos;);
+        if (!isNum(plot.minY)) s.push(&apos;Surfaceplots require the &quot;minY&quot; attribute (minimum y value)&apos;);
+        if (!isNum(plot.maxY)) s.push(&apos;Surfaceplots require the &quot;maxY&quot; attribute (maxmium y value)&apos;);
+
+        if (plot.parse) {
+
+          if (!isNum(plot.step)) s.push(&apos;A parsed surfaceplot requires the &quot;step&quot; attribute (interval between adjascent x and y values)&apos;);
+          if (x=plot.parse, !x || !t(x, &apos;string&apos;)) s.push(&apos;A parsed surfaceplot requires the &quot;parse&quot; attribute, which must be a string representing an expression for z, ie the &quot;f&quot; in &quot;z=f(x,y)&quot; (ex: &quot;sin(x)*y&quot;, &quot;t*x*y&quot;, etc. Don\&apos;t forget to add the &quot;animated&quot; attribute and a &quot;t&quot; in the function if you want it to be animated)&apos;);
+
+          if (plot.animated) { // surfaceplot, parsed, animated
+
+            if (!isNum(plot.start)) s.push(&apos;A parsed, animated surfaceplot requires the &quot;start&quot; attribute (initial time value)&apos;);
+            if (!isNum(plot.dt)) s.push(&apos;A parsed, animated surfaceplot requires the &quot;dt&quot; attribute (time step per frame)&apos;);
+
+          } else { // surfaceplot, parsed, not animated
+
+            // handled above.
+
+          }
+
+        } else {
+
+          if (plot.animated) { // surfaceplot, not parsed, animated
+
+            if (x=plot.next, !x || !t(x, &apos;function&apos;)) s.push(&apos;An animated surfaceplot requires a &quot;next&quot; attribute (provides the a new 2D array of heights each frame) or a &quot;parse&quot; attribute&apos;)
+
+          } else { // surfaceplot, not parsed, not animated
+
+            if (x=plot.data, !x || !isArr(x) || !isNumArr2D(x)) s.push(&apos;This type of surfaceplot requires the &quot;data&quot; attribute (2D array of height values)&apos;);
+
+          }
+        }
+      }
+    }
+
+    if (s.length) this._handle(s.join(&apos;\n&apos;), policy);
+  }
+
+}
+</code></pre>
+
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.8)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

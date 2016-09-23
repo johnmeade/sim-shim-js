@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base data-ice="baseUrl">
+  <title data-ice="title">API Document</title>
+  <link type="text/css" rel="stylesheet" href="css/style.css">
+  <link type="text/css" rel="stylesheet" href="css/prettify-tomorrow.css">
+  <script src="script/prettify/prettify.js"></script>
+  
+  
+  <script src="script/manual.js"></script>
+</head>
+<body class="layout-container" data-ice="rootContainer">
+
+<header>
+  <a href="./">Home</a>
+  
+  <a href="identifiers.html">Reference</a>
+  <a href="source.html">Source</a>
+  
+  <a data-ice="repoURL" href="https://github.com/codemaker1999/sim-shim-js" class="repo-url-github">Repository</a>
+  <div class="search-box">
+  <span>
+    <img src="./image/search.png">
+    <span class="search-input-edge"></span><input class="search-input"><span class="search-input-edge"></span>
+  </span>
+    <ul class="search-result"></ul>
+  </div>
+</header>
+
+<nav class="navigation" data-ice="nav"><div>
+  <ul>
+    
+  <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShim.js~SimShim.html">SimShim</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimObj.js~SimShimObj.html">SimShimObj</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimPlotCtx.js~SimShimPlotCtx.html">SimShimPlotCtx</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimSanitize.js~SimShimSanitize.html">SimShimSanitize</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimUtil.js~SimShimUtil.html">SimShimUtil</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-ParseError">ParseError</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-newParseError">newParseError</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-add">add</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-push">push</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rest">rest</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-sorted">sorted</a></span></span></li>
+<li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-zip">zip</a></span></span></li>
+</ul>
+</div>
+</nav>
+
+<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h1 id="3d-plotting-and-animation-using-webgl">3D Plotting and Animation Using WebGL</h1>
+<p><strong>Try it out and see examples at <a href="http://codemaker1999.github.io/sim-shim-js">http://codemaker1999.github.io/sim-shim-js</a></strong></p>
+<p>The main goals of this project are to provide</p>
+<ul>
+<li><p>a minimum-setup API for efficient 3D plotting and simulations using WebGL</p>
+</li>
+<li><p>easily embeddable visualizations</p>
+</li>
+<li><p>A rich set of examples to provide a starting point for common tasks</p>
+</li>
+</ul>
+<h2 id="examples">Examples</h2>
+<p>There is an included set of examples that demonstrates all supported uses of
+the library in the <code>examples</code> folder. See them in action (and fiddle with them)
+<a href="http://codemaker1999.github.io/sim-shim-js">here</a>.</p>
+<h2 id="importing">Importing</h2>
+<p>This is a fairly large library, and so it might take a bit of time for
+your browser to load it. Because you cannot be sure how browsers will
+handle this, you should wait for the page to load before running any JS files
+that instantiate <code>SimShim</code>. The error you get when the library is not yet
+loaded will look something like this:</p>
+<pre><code><code class="source-code prettyprint">Uncaught TypeError: SimShim is not a constructor</code>
+</code></pre><p>To wait for the library to load, you can do one of the following:</p>
+<ul>
+<li><p>Add a <code>defer</code> attribute to the <code>&lt;script&gt;</code> tag with your javascript that uses
+the library</p>
+<pre><code class="lang-html"><code class="source-code prettyprint">&lt;script src=&quot;.../sim-shim-bundle.js&quot;&gt;&lt;/script&gt;
+&lt;script defer src=&quot;.../your-file.js&quot;&gt;&lt;/script&gt;</code>
+</code></pre>
+<p>When this attribute is present (make sure the <code>async</code> attribute is not also
+present!), the script is run when the page is finished loading.</p>
+</li>
+<li><p>If you&apos;re using JQuery, you can import the library using JS (meaning you
+don&apos;t need to have a <code>&lt;script&gt;</code> tag for <code>sim-shim-bundle.js</code> in your html
+at all) like this:</p>
+<pre><code class="lang-js"><code class="source-code prettyprint">$.getScript(&quot;.../sim-shim-bundle.js&quot;, function(){
+  var ss = new SimShim(&apos;#plot&apos;);
+  // ...
+});</code>
+</code></pre>
+</li>
+<li><p>If you would like to have the <code>&lt;script&gt;</code> tag to import, you can also set up
+listeners for the event signifying the page has been loaded. To do this,
+put your SimShim code inside a function, say this one:</p>
+<pre><code class="lang-js"><code class="source-code prettyprint">function yourCoolInitializer() {
+  var ss = new SimShim(&apos;#plot&apos;);
+  // ...
+}</code>
+</code></pre>
+<p>Then, if you are using JQuery, you now just have to do the following:</p>
+<pre><code class="lang-js"><code class="source-code prettyprint">$(window).load(yourCoolInitializer)</code>
+</code></pre>
+<p>If you are using plain JS it&apos;s a bit messier, as there are several ways to do
+the listening depending on which browser is being used:</p>
+<pre><code class="lang-js"><code class="source-code prettyprint">if (window.addEventListener) {
+  window.addEventListener(&quot;load&quot;, yourCoolInitializer, false);
+} else if (window.attachEvent) {
+  window.attachEvent(&quot;onload&quot;, yourCoolInitializer);
+} else {
+  window.onload = yourCoolInitializer;
+}</code>
+</code></pre>
+</li>
+</ul>
+<h2 id="usage">Usage</h2>
+<p>Just create a valid plot manifest (JSON object), and provide a DOM element for the plot to live in.</p>
+<p>There are several types of manifests, including lines in 3D space,
+animated 3D lines, and surface plots. For example, to make an interactive plot
+containing a triangle and a square, you could write:</p>
+<pre><code class="lang-js"><code class="source-code prettyprint">var triangle = {
+    &quot;type&quot;: &quot;lineplot&quot;,
+    &quot;data&quot;: [[0,0,0], [0,0,1], [0, 0.5, 0.5], [0,0,0]]
+};
+
+var square = {
+    &quot;type&quot;: &quot;lineplot&quot;,
+    &quot;data&quot;: [[0,0,0], [1,0,0], [1,1,0], [0,1,0], [0,0,0]]
+};
+
+var ss = new SimShim(&apos;#plot-div&apos;);
+// or &quot;var ss = new SimShim(document.getElementById(&apos;plot-div&apos;));&quot;
+// or &quot;var ss = new SimShim($(&apos;#plot-div&apos;));&quot;
+ss.addPlot( triangle );
+ss.addPlot( square );
+ss.start();</code>
+</code></pre>
+<p>to create an animated spiral / helix:</p>
+<pre><code class="lang-js"><code class="source-code prettyprint">var animSpiral = {
+    &quot;type&quot;      : &quot;lineplot&quot;,
+    &quot;animated&quot;  : true,
+    // provide parametric components:
+    // [ x(t), y(t), z(t) ]
+    &quot;parse&quot;     : [ &quot;sin(t)&quot;, &quot;cos(t)&quot;, &quot;t/10&quot; ],
+    &quot;start&quot;     : 0,
+    &quot;step&quot;      : 1/40,
+    &quot;lineLength&quot;: 10000
+};
+
+var ss = new SimShim(&apos;#plot-div&apos;);
+ss.addPlot( animSpiral );
+ss.start();</code>
+</code></pre>
+<p>to create a surface plot, say a sinusoidal blanket:</p>
+<pre><code class="lang-js"><code class="source-code prettyprint">var blanket = {
+    &quot;type&quot;  : &quot;surfaceplot&quot;,
+    // provide f(x,y), where z=f(x,y)
+    &quot;parse&quot; : &quot;sin(x)+cos(y)&quot;,
+    &quot;minX&quot;  : -10,
+    &quot;maxX&quot;  : 10,
+    &quot;minY&quot;  : -10,
+    &quot;maxY&quot;  : 10,
+    &quot;step&quot;  : 1/10
+};
+
+var ss = new SimShim(&apos;#plot-div&apos;);
+ss.addPlot( blanket );
+ss.start();</code>
+</code></pre>
+<p>and to create an animated surface plot, you might write:</p>
+<pre><code class="lang-js"><code class="source-code prettyprint">var pulsingBlanket = {
+    &quot;type&quot;: &quot;surfaceplot&quot;,
+    &quot;animated&quot;: true,
+    // &quot;t&quot; is always interpretted as time
+    &quot;parse&quot;: &quot;sin(t)*(sin(x)+sin(y))&quot;,
+    &quot;minX&quot; : -6,
+    &quot;maxX&quot; : 6,
+    &quot;minY&quot; : -6,
+    &quot;maxY&quot; : 6,
+    &quot;step&quot; : 1/4, // dx and dy
+    &quot;start&quot;: 0,
+    &quot;dt&quot;   : 1/20
+};
+
+var ss = new SimShim(&apos;#plot-div&apos;);
+ss.addPlot( pulsingBlanket );
+ss.start();</code>
+</code></pre>
+<p>Trying to remember which properties to use for specific plot types is very cumbersome, so there is a lot of built-in help for dealing with this problem. The <code>examples/</code> folder has a minimal example for each type of plot supported, so they&apos;re the best starting points. Otherwise, you can basically just guess your way through writing the manifests, as there is a built-in system that tells you (by logging errors in the console) if the manifest is missing any properties based on the type of plot you are using.</p>
+<p>Once the manifest is done, SimShim will figure the rest out. There are many customizable options, some of which can be found in the examples at <a href="http://codemaker1999.github.io/sim-shim-js">http://codemaker1999.github.io/sim-shim-js</a>.</p>
+<h2 id="controls">Controls</h2>
+<p>The scheme used for controls is a camera looking at a point in space (the orbit target) that is some distance away from this point. The camera orbits around this point when the mouse is dragged, and gets closer / farther by zooming. More detail is below, with mobile phone browser instructions in square brackets.</p>
+<ul>
+<li><p>Drag the mouse [drag your finger] to orbit the camera around</p>
+</li>
+<li><p>Double-click [double-tap] on the plot to retarget the camera. This computes the min and max bounds of all objects in the scene and positions the camera so that you can see everything (this is very useful! Especially for animations!)</p>
+</li>
+<li><p>Scroll [pinch] to zoom closer to the camera orbit target</p>
+</li>
+<li><p>Use the arrow keys to manually move the point the camera is looking at</p>
+</li>
+</ul>
+<h2 id="notes-and-tips">Notes and Tips</h2>
+<ul>
+<li><p>Choice of variables are mostly up to you, for example <code>{&quot;parse&quot;: &quot;sin(x*y)&quot;, ...}</code> is equivelant to <code>{&quot;parse&quot;: &quot;sin(r*k)&quot;, ...}</code>. The exception to this is &quot;t&quot;, which will always be treated as a &quot;time&quot; parameter when used in a surfaceplot.</p>
+</li>
+<li><p>You can access the Three JS machinery through <code>ss.plotCtx[ prop ]</code>, where <code>prop</code> is one of <code>[&apos;camera&apos;, &apos;scene&apos;, &apos;renderer&apos;, &apos;controls&apos;, &apos;light&apos;, &apos;objects&apos;]</code>, and you can access the Three JS objects in the scene through <code>ss.plotCtx.objects[i].threeObj</code>.</p>
+</li>
+<li><p>The <code>SimShim.addPlot</code> function returns a random string ID that is attached to the corresponding plot object <code>SimShim.plotCtx.objects[i].id</code>. To later remove a plot from the scene, do <code>var id = ss.addPlot( myPlot ); ss.removeById( id )</code>.</p>
+</li>
+<li><p>You can add your own Three JS objects to the scene and / or add a function to the render loop by calling <code>ss.addObject( threeObj, updateFunction )</code>. Both arguments are optional, if you just need a static object or just need an update function.</p>
+</li>
+<li><p>If you are plotting surfaces and the page is freezeing, try reducing the min and max bounds, and increasing the step size. You can easily and accidentally end up trying to compute millions or billions of points without realizing it! This is even worse for animated surfaces, so beware!</p>
+</li>
+<li><p>For efficiency reasons there is a finite length to the trajectories being animated (A finite size buffer is created to hold the points being plotted), so animations will eventually start to disappear sequentially from where they start (they will continue to grow at the same rate, of course).</p>
+</li>
+<li><p>For charts and graphs, try this: <a href="http://threegraphs.com/">http://threegraphs.com/</a></p>
+</li>
+</ul>
+<h2 id="building">Building</h2>
+<pre><code class="lang-bash"><code class="source-code prettyprint">npm install
+# only un-minified files:
+npm build
+npm watch
+# build both dev and production
+npm buildall</code>
+</code></pre>
+<h2 id="what-s-next-">What&apos;s Next?</h2>
+<ul>
+<li><p>GUI features like buttons for fullscreen, floating plot labels, etc</p>
+</li>
+<li><p>implicit surface plots, ie plotting <code>f(x,y,z)</code> such that <code>f(x,y,z) = 0</code>. The
+constraint on <code>f</code> yields <code>3-1=2</code> degrees of freedom, thus defining a surface
+(implicitly).</p>
+</li>
+<li><p>built-in ODE simulation (runge kutta methods library)</p>
+</li>
+<li><p>AND MORE!!!</p>
+</li>
+</ul>
+</div>
+</div>
+
+<footer class="footer">
+  Generated by <a href="https://esdoc.org">ESDoc<span data-ice="esdocVersion">(0.4.8)</span></a>
+</footer>
+
+<script src="script/search_index.js"></script>
+<script src="script/search.js"></script>
+<script src="script/pretty-print.js"></script>
+<script src="script/inherited-summary.js"></script>
+<script src="script/test-summary.js"></script>
+<script src="script/inner-link.js"></script>
+<script src="script/patch-for-local.js"></script>
+</body>
+</html>

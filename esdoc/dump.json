@@ -1,0 +1,2524 @@
+[
+  {
+    "__docId__": 0,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/Errors.js",
+    "memberof": null,
+    "longname": "src/Errors.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import Throwable from 'throwable'\n\n\nexport function ParseError(wrapped) {\n  Throwable.call(this, wrapped)\n  this.name = 'ParseError'\n}\n\n\nexport function newParseError (msg) { return new ParseError(Error(msg)) }\n"
+  },
+  {
+    "__docId__": 1,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "ParseError",
+    "memberof": "src/Errors.js",
+    "longname": "src/Errors.js~ParseError",
+    "access": null,
+    "export": true,
+    "importPath": "sim-shim/src/Errors.js",
+    "importStyle": "{ParseError}",
+    "description": null,
+    "lineNumber": 4,
+    "undocument": true,
+    "params": [
+      {
+        "name": "wrapped",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 2,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "newParseError",
+    "memberof": "src/Errors.js",
+    "longname": "src/Errors.js~newParseError",
+    "access": null,
+    "export": true,
+    "importPath": "sim-shim/src/Errors.js",
+    "importStyle": "{newParseError}",
+    "description": null,
+    "lineNumber": 10,
+    "undocument": true,
+    "params": [
+      {
+        "name": "msg",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 3,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/RungeKutta.js",
+    "memberof": null,
+    "longname": "src/RungeKutta.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 71,
+    "content": "// import {zip} from 'UtilFunctional';\n//\n// class RungeKutta {\n//\n//   /*|\n//   |*|  Creates an explicit Runge Kutta solver given a Butcher Tableau.\n//   |*|\n//   |*|  'A' is the Runge-Kutta matrix\n//   |*|  'b' is the vector of weights\n//   |*|  'c' is the vector of nodes\n//   |*|  'h' is the step size\n//   |*|\n//   |*|  A must be a lower triangular matrix of size n by n\n//   |*|  b and c must be dimension n\n//   |*/\n//\n//   constructor (A, b, c, h) {\n//     this.A = A;\n//     this.b = b;\n//     this.c = c;\n//     this.h = h;\n//     this.n = A.length;\n//   }\n//\n//   // compute one step. supplied f must have signature f(t,vector)\n//   step (f,t,y) {\n//     ks = [];\n//     for (var i = 0; i < this.n; i++) {\n//       let ti = t + this.c[i] * this.h,\n//           yi = y + this.h * ks.reduce( (acc,ki,j)=>{\n//             return acc + this.A[i][j] * ki;\n//           }, 0);\n//       ks.push( f(ti,yi) );\n//     }\n//     return y + h * zip(this.b,ks).reduce((acc,tup)=>{\n//       return acc + tup[0]*tup[1];\n//     },0);\n//   }\n//\n//   // checks the condition for a consistent RK method (google it...)\n//   isConsistent () {\n//     let bools = this.a.reduce( (vec,row,i)=>{\n//       let rowsum = row.reduce( (sum,aij,j)=>{\n//         if (j < i) return sum + aij;\n//         else return sum;\n//       }, 0 );\n//       vec.push( c[i] == rowsum );\n//     }, [] );\n//     return bools.reduce( (acc,bool)=>{ return acc && bool }, true )\n//   }\n//\n// }\n//\n// class RK4 extends RungeKutta {\n//\n//   // The classic Runge-Kutta 4 method\n//\n//   constructor (h) {\n//     A = [\n//       [0,   0,   0, 0],\n//       [0.5, 0,   0, 0],\n//       [0,   0.5, 0, 0],\n//       [0,   0,   1, 0]\n//     ];\n//     b = [1/6, 1/3, 1/3, 1/6];\n//     c = [0, 0.5, 0.5, 1];\n//     super(A,b,c,h);\n//   }\n//\n// }\n"
+  },
+  {
+    "__docId__": 4,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/SimShim.js",
+    "memberof": null,
+    "longname": "src/SimShim.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import THREE from 'three'\n\nimport SimShimSanitize from './SimShimSanitize'\nimport SimShimPlotCtx from './SimShimPlotCtx'\nimport SimShimObj from './SimShimObj'\nimport SimShimUtil from './SimShimUtil'\nimport { ParseError } from './Errors'\n\nimport FlyControls from '../vendor/threejs-extras/FlyControls'\nimport OrbitControls from '../vendor/threejs-extras/OrbitControls'\n\n\nexport default class SimShim {\n\n\n  /**\n   * Creates a new instance of SimShim. You can have as many instances as you\n   * want, but you should probably avoid this when possible.\n   *\n   * @param {string OR Element OR JQuery selection array} plotTarget - The\n   *   renderer will be attached to this element. It can be specified as a\n   *   string (querySelector) which will be queried, an Element which is used\n   *   directly, or the output of a JQuery query like `$('#my-plot-div')`\n   *\n   * @param {JSON Object} settings - [Optional] Specify additional details such\n   *   as where the camera should be positioned / pointing, the background color\n   *   of the plot, the light intensity to shine on the plot (for surfaces), etc\n   */\n  constructor(plotTarget, settings = {}) {\n    this.ids = []\n    this.paused = false\n\n    /*\\\n    |*|  Sanitize\n    \\*/\n\n    // try to parse the plot target\n\n    if (typeof plotTarget === 'string') {\n      // '#plot'\n      plotTarget = document.querySelector(plotTarget)\n    } else if (plotTarget instanceof Array) {\n      // $('.plot')\n      plotTarget = plotTarget[0]\n    }\n\n    if (!(plotTarget instanceof Element)) {\n      throw new Error('First argument of SimShim constructor must be a selector string, jquery selection array, or an Element')\n    }\n\n    SimShimSanitize.checkSettings(settings, 'throw')\n\n    /*\\\n    |*|  Unpack / Initialize Settings\n    \\*/\n\n    let setns = {}\n\n    setns.userDefinedCam     = Boolean(settings.cameraPosn)\n    setns.far                = settings.far                || 500\n    setns.near               = settings.near               || 0.005\n    setns.showGrid           = settings.showGrid           || true // TODO\n    setns.showAxes           = settings.showAxes           || true // TODO\n    setns.ctrlType           = settings.ctrlType           || \"orbit\"\n    setns.clearColor         = settings.clearColor         || \"#111\"\n    setns.autoRotate         = settings.autoRotate         || false\n    setns.cameraPosn         = settings.cameraPosn         || [0,0,0]\n    setns.cameraAngle        = settings.cameraAngle        || 45\n    setns.orbitTarget        = settings.orbitTarget        || [0,0,0]\n    setns.lightIntensity     = settings.lightIntensity     || 0.85\n\n    /*\\\n    |*|  Conversions\n    \\*/\n\n    // accept arrays from users, but work with Vector3 internally\n    setns.cameraPosn = SimShimUtil.toVec3( setns.cameraPosn )\n    setns.orbitTarget = SimShimUtil.toVec3( setns.orbitTarget )\n\n    /*\\\n    |*|  Constants\n    \\*/\n\n    const WIDTH         = plotTarget.offsetWidth,\n          HEIGHT        = plotTarget.offsetHeight,\n          FAR           = setns.far,\n          NEAR          = setns.near,\n          SHOWGRID      = setns.showGrid,\n          SHOWAXES      = setns.showAxes,\n          CTRLTYPE      = setns.ctrlType,\n          AUTOROT       = setns.autoRotate,\n          CAMERAPOSN    = setns.cameraPosn,\n          CAMANGLE      = setns.cameraAngle,\n          ORBITTARGET   = setns.orbitTarget,\n          LIGHTINTESITY = setns.lightIntensity,\n          CLEARCOLOR    = new THREE.Color( setns.clearColor )\n\n\n    /*\\\n    |*|  Set up ThreeJS\n    \\*/\n\n    // -----------------------------------------------------\n    // Renderer\n\n    if (!window.__simshim_renderer__)\n      window.__simshim_renderer__ = new THREE.WebGLRenderer({\n          // TODO expose more options?\n          // scale: SCALE,\n          // brightness: 2,\n          // antialias: true\n      })\n    let renderer = window.__simshim_renderer__\n    renderer.setSize( WIDTH, HEIGHT )\n    // renderer.domElement.style.top = \"0px\"\n    // renderer.domElement.style.left = \"0px\"\n    renderer.domElement.style.margin = \"0px\"\n    renderer.domElement.style.padding = \"0px\"\n    renderer.setClearColor( CLEARCOLOR )\n    plotTarget.appendChild( renderer.domElement )\n\n    // -----------------------------------------------------\n    // Scene\n\n    let scene = new THREE.Scene()\n\n    // -----------------------------------------------------\n    // Camera\n\n    let camera = new THREE.PerspectiveCamera(CAMANGLE, WIDTH/HEIGHT, NEAR, FAR)\n    camera.position.set( CAMERAPOSN )\n    camera.up = new THREE.Vector3(0,0,1)\n    camera.lookAt( ORBITTARGET )\n    scene.add(camera)\n\n    // -----------------------------------------------------\n    // Controls\n\n    let controls\n    switch (CTRLTYPE) {\n\n      case \"fly\":\n        controls = new FlyControls( camera )\n        controls.dragToLook = true\n        break\n\n      case \"orbit\":\n        controls = new OrbitControls( camera, renderer.domElement )\n        controls.target.set( ORBITTARGET )\n        controls.autoRotate = AUTOROT\n        break\n\n      default:\n        throw new Error(`[SimShim] Argument Error: Invalid control type \"${CTRLTYPE}\"`)\n        break\n\n    }\n\n    // -----------------------------------------------------\n    // Light\n\n    let light = new THREE.DirectionalLight( 0xffffff, LIGHTINTESITY )\n    scene.add(light)\n\n    // -----------------------------------------------------\n    // Animate\n\n    // create plot context\n    this.plotCtx = new SimShimPlotCtx(renderer, scene, camera, controls, light)\n\n    // -----------------------------------------------------\n    // Events\n\n    // retarget camera (helpful for animations)\n    plotTarget.addEventListener(\n      'dblclick',\n      (e) => {\n        if (this.plotCtx.objects.length === 0) return\n        this.retargetCamera()\n      },\n      false\n    )\n\n    // resize (only fire event after 500ms of no resize events)\n    let resizeCallback\n    window.addEventListener(\n      'resize',\n      () => {\n        clearTimeout(resizeCallback)\n        resizeCallback = setTimeout(\n          () => {\n            let W = plotTarget.offsetWidth,\n                H = plotTarget.offsetHeight\n            camera.aspect = W / H\n            camera.updateProjectionMatrix()\n            renderer.setSize( W, H )\n          },\n          500\n        )\n      },\n      false\n    )\n\n    // force bind the scope just in case of weird edge cases\n    this.setPaused = this.setPaused.bind(this)\n    this.getPaused = this.getPaused.bind(this)\n    this.addPlot = this.addPlot.bind(this)\n    this.addObject = this.addObject.bind(this)\n    this.getById = this.getById.bind(this)\n    this.removeObject = this.removeObject.bind(this)\n    this.removeAllObjects = this.removeAllObjects.bind(this)\n    this.removeById = this.removeById.bind(this)\n    this.setSettings = this.setSettings.bind(this)\n    this.retargetCamera = this.retargetCamera.bind(this)\n    this.animate = this.animate.bind(this)\n    this.start = this.start.bind(this)\n  }\n\n\n  /**\n   * Pause or unpause the animation with this setter\n   *\n   * @param {boolean} bool - Truthy values are coerced into booleans\n   */\n  setPaused (bool) {\n    this.paused = Boolean(bool)\n  }\n\n\n  /**\n   * @returns {boolean} - True if the animation is paused\n   */\n  getPaused() {\n    return this.paused\n  }\n\n\n  /**\n   * Creates a SimShimObj with the provided plot manifest\n   *\n   * @param {JSON Object} plot - The manifest of the plot object you would like\n   *   generated\n   *\n   * @param {JSON Object} settings - [Optional] Additional options modifying the\n   *   colour of the plot object and it's shading (for surfaces)\n   *\n   * @returns {string} - Alpha-numeric string ID to later retrieve the\n   *   object with\n   */\n  addPlot (plot, settings = {}) {\n    try {\n\n      SimShimSanitize.checkPlotObj(plot, 'throw') // throws\n\n      // add/parse color\n      let color = settings.color ?\n                  new THREE.Color(settings.color) :\n                  new THREE.Color().setHSL(Math.random(),80/100,65/100)\n\n      // shading type\n      let shading\n      switch (settings.shading) {\n        case 'smooth':\n          shading = THREE.SmoothShading\n          break\n        case 'flat':\n          shading = THREE.FlatShading\n          break\n        default:\n          shading = THREE.SmoothShading\n      }\n\n      // make unique alpha-num string\n      let id\n      do id = Math.random().toString(36).slice(2)\n      while (this.ids.indexOf(id) != -1)\n      this.ids.push(id)\n\n      // parse into wrapper\n      let ssPlot = SimShimObj.fromPlotManifest( id, plot, { color, shading } ) // throws\n      this.plotCtx.scene.add( ssPlot.threeObj )\n      this.plotCtx.objects.push( ssPlot )\n\n      return id\n\n    } catch (e) {\n      if (e.stack) console.error(e.stack)\n      else console.error(e)\n      console.warn('[SimShim] addPlot returning null')\n      return null\n    }\n  }\n\n\n  /**\n   * Creates a SimShimObj with optional ThreeJS object and an optional update\n   * function to be called in the render loop.\n   *\n   * @param {THREE.Object3D} threeObj - [Optional] if an Object3D is given here,\n   *   it is added to the scene.\n   *\n   * @param {function()} updateFunction - [Optional] if a function is given here,\n   *   it is added to the render loop and called every frame.\n   *\n   * @returns {string} - Alpha-numeric string ID to later retrieve the\n   *   object with\n   *\n   * @example\n   * var ss = new SimShim('#plot-div');\n   * ss.addObject(null, myCoolFunc);\n   * ss.addObject(myCoolObject, null);\n   */\n  addObject (threeObj, updateFunction) {\n\n    if (!(threeObj instanceof THREE.Object3D)) threeObj = null\n    if (typeof updateFunction !== 'function') updateFunction = () => {}\n\n    // make unique alpha-num string\n    let id\n    do id = Math.random().toString(36).slice(2)\n    while (this.ids.indexOf(id) != -1)\n\n    this.ids.push(id)\n    this.plotCtx.objects.push( new SimShimObj(id, {}, threeObj, updateFunction) )\n    if (threeObj) this.plotCtx.scene.add( threeObj )\n\n    return id\n  }\n\n\n  /**\n   * Retrieve a plot based on it's ID. IDs are returned by the `addPlot` and\n   * `addObject` methods.\n   *\n   * @param {string} id - The ID to search for\n   *\n   * @returns {SimShimObj} - The matching object or undefined if nothing matched\n   */\n  getById (id) {\n    return this.plotCtx.objects.find( o => o.id == id )\n  }\n\n\n  /**\n   * Does it's best to remove the object and any associated structures. This\n   * process is experimental because ThreeJS has questionable support for this\n   * at the moment.\n   *\n   * @param {THREE.Object3D or SimShimObj} o - The object to attempt removal of\n   */\n  removeObject(o) {\n    console.warn('[SimShim] the removeObject method is experimental and '+\n      'might not completely free up memory')\n    this.plotCtx.scene.remove( o )\n    if (o.threeObj) {\n      this.plotCtx.scene.remove( o.threeObj )\n      if (o.threeObj.geometry) {\n        o.threeObj.geometry.dispose()\n        o.threeObj.geometry = undefined\n      }\n      if (o.threeObj.dispose) o.threeObj.dispose()\n      o.threeObj = undefined\n    }\n    if (typeof o.dispose === 'function') o.dispose()\n  }\n\n\n  /**\n   * A more thorough method than `removeObject`, this method tries removing all\n   * objects and also tries iterating through the ThreeJS structures and\n   * calling various disposal methods. This method is also very experimental,\n   * and should not be relied upon too much (or at all if you don't want\n   * memory leaks!)\n   */\n  removeAllObjects() {\n    console.warn('[SimShim] the removeAllObjects method is experimental and '+\n      'might not completely free up memory')\n    // SimShim\n    this.plotCtx.objects.forEach(this.removeObject)\n    // THREEjs\n    let scene = this.plotCtx.scene\n    if (scene.__objects) scene.__objects.forEach(function(obj, idx) {\n      scene.remove(obj)\n      if (obj.geometry) obj.geometry.dispose()\n      if (obj.material) {\n        if (obj.material instanceof THREE.MeshFaceMaterial) {\n          obj.material.materials.forEach(function(mat, idx) {\n            mat.dispose()\n          })\n        } else obj.material.dispose()\n      }\n      if (obj.dispose) obj.dispose()\n    })\n    // reset containers / remove references\n    this.plotCtx.objects = []\n    this.ids = []\n    this.paused = true\n  }\n\n\n  /**\n   * Remove a plot by it's ID. This attempts to remove the ThreeJS objects\n   * from memory, but this process has questionable results, so memory leaks\n   * may occur.\n   */\n  removeById (id) {\n    console.warn('[SimShim] the removeById method is experimental and '+\n      'might not completely free up memory')\n    let idIdx = this.ids.indexOf( id )\n    let plotIdx = this.plotCtx.objects.findIndex(p => p.id == id)\n    if (idIdx == -1) console.warn(`[SimShim] Plot id ${id} not found`)\n    else this.ids.splice( idIdx, 1 )\n    if (plotIdx == -1) console.warn(`[SimShim] No plot with id ${id} found, no plots removed`)\n    else {\n      this.removeObject( this.plotCtx.objects[plotIdx] )\n      this.plotCtx.objects.splice( plotIdx, 1 )\n    }\n  }\n\n\n  /**\n   * Replace a subset of global settings at runtime. Currently supports\n   * cameraPosn, cameraAngle, orbitTarget, lightIntensity, and autoRotate\n   */\n  setSettings (settings = {}) {\n\n    SimShimSanitize.checkSettings(settings, 'warn')\n\n    for (let k in settings) {\n      switch (k) {\n        case 'cameraPosn':\n          this.plotCtx.camera.position.setX(settings[k][0])\n          this.plotCtx.camera.position.setY(settings[k][1])\n          this.plotCtx.camera.position.setZ(settings[k][2])\n          this.plotCtx.camera.updateProjectionMatrix()\n          break\n        case 'cameraAngle':\n          this.plotCtx.camera.fov = settings[k]\n          this.plotCtx.camera.updateProjectionMatrix()\n          break\n        case 'orbitTarget':\n          this.plotCtx.controls.target.setX(settings[k][0])\n          this.plotCtx.controls.target.setY(settings[k][1])\n          this.plotCtx.controls.target.setZ(settings[k][2])\n          this.plotCtx.controls.update(1)\n          break\n        case 'lightIntensity':\n          this.plotCtx.light.intensity = settings[k]\n          break\n        case 'autoRotate':\n          this.plotCtx.controls.autoRotate = settings[k]\n          break\n        default:\n          console.warn(`[SimShim] Cannot modify setting \"${k}\", skipping this key`)\n          break\n      }\n    }\n  }\n\n\n  /**\n   * Manually trigger camera to retarget. This will place the camera a\n   * reasonable distance back from the action and fixes where it is looking\n   * to a point near the middle of the action.\n   */\n  retargetCamera () {\n    let M = this.plotCtx.updateMetrics(),\n        relativeCameraPosn = new THREE.Vector3(\n            M.distX, M.distY, M.distZ\n        ).multiplyScalar(3),\n        cameraPosn = relativeCameraPosn.add(M.center)\n    // Camera\n    this.plotCtx.camera.position.x = cameraPosn.x\n    this.plotCtx.camera.position.y = cameraPosn.y\n    this.plotCtx.camera.position.z = cameraPosn.z\n    this.plotCtx.camera.lookAt(M.center)\n    if (this.plotCtx.controls instanceof OrbitControls) {\n      this.plotCtx.controls.target.copy(M.center)\n    }\n  }\n\n\n  animate () {\n    // loop\n    window.requestAnimationFrame( () => { this.animate() } )\n\n    // increment iterator plot objects\n    if (!this.paused) {\n      for (let j = 0; j < this.plotCtx.objects.length; j++) {\n        this.plotCtx.objects[j].update()\n      }\n\n      // update controls and lights\n      this.plotCtx.controls.update( 1 )\n      this.plotCtx.light.position.copy( this.plotCtx.camera.position )\n      this.plotCtx.light.lookAt( this.plotCtx.metrics.center )\n    }\n\n    // render\n    this.plotCtx.render()\n  }\n\n\n  start () {\n    this.plotCtx.render()\n\n    // Update Scene (Lights, Camera)\n    if (!this.userDefinedCam) this.retargetCamera()\n    this.plotCtx.light.position.copy( this.plotCtx.camera.position )\n    this.plotCtx.light.lookAt( this.plotCtx.metrics.center )\n\n    // polyfill animation frames\n    window.requestAnimationFrame = window.requestAnimationFrame\n                                || window.webkitRequestAnimationFrame\n                                || window.mozRequestAnimationFrame\n                                || window.oRequestAnimationFrame\n                                || window.msRequestAnimationFrame\n                                || ((cb) => window.setTimeout( cb, 1000 / 60 ))\n    // start the render loop\n    this.animate()\n  }\n\n}\n"
+  },
+  {
+    "__docId__": 5,
+    "kind": "class",
+    "static": true,
+    "variation": null,
+    "name": "SimShim",
+    "memberof": "src/SimShim.js",
+    "longname": "src/SimShim.js~SimShim",
+    "access": null,
+    "export": true,
+    "importPath": "sim-shim/src/SimShim.js",
+    "importStyle": "SimShim",
+    "description": null,
+    "lineNumber": 13,
+    "undocument": true,
+    "interface": false
+  },
+  {
+    "__docId__": 6,
+    "kind": "constructor",
+    "static": false,
+    "variation": null,
+    "name": "constructor",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#constructor",
+    "access": null,
+    "description": "Creates a new instance of SimShim. You can have as many instances as you\nwant, but you should probably avoid this when possible.",
+    "lineNumber": 29,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string OR Element OR JQuery selection array"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "plotTarget",
+        "description": "The\n  renderer will be attached to this element. It can be specified as a\n  string (querySelector) which will be queried, an Element which is used\n  directly, or the output of a JQuery query like `$('#my-plot-div')`"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "JSON Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "settings",
+        "description": "[Optional] Specify additional details such\n  as where the camera should be positioned / pointing, the background color\n  of the plot, the light intensity to shine on the plot (for surfaces), etc"
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 7,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "ids",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#ids",
+    "access": null,
+    "description": null,
+    "lineNumber": 30,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 8,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "paused",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#paused",
+    "access": null,
+    "description": null,
+    "lineNumber": 31,
+    "undocument": true,
+    "type": {
+      "types": [
+        "boolean"
+      ]
+    }
+  },
+  {
+    "__docId__": 9,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "plotCtx",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#plotCtx",
+    "access": null,
+    "description": null,
+    "lineNumber": 169,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 10,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "setPaused",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#setPaused",
+    "access": null,
+    "description": null,
+    "lineNumber": 205,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 11,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "getPaused",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#getPaused",
+    "access": null,
+    "description": null,
+    "lineNumber": 206,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 12,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "addPlot",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#addPlot",
+    "access": null,
+    "description": null,
+    "lineNumber": 207,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 13,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "addObject",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#addObject",
+    "access": null,
+    "description": null,
+    "lineNumber": 208,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 14,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "getById",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#getById",
+    "access": null,
+    "description": null,
+    "lineNumber": 209,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 15,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "removeObject",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#removeObject",
+    "access": null,
+    "description": null,
+    "lineNumber": 210,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 16,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "removeAllObjects",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#removeAllObjects",
+    "access": null,
+    "description": null,
+    "lineNumber": 211,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 17,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "removeById",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#removeById",
+    "access": null,
+    "description": null,
+    "lineNumber": 212,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 18,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "setSettings",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#setSettings",
+    "access": null,
+    "description": null,
+    "lineNumber": 213,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 19,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "retargetCamera",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#retargetCamera",
+    "access": null,
+    "description": null,
+    "lineNumber": 214,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 20,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "animate",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#animate",
+    "access": null,
+    "description": null,
+    "lineNumber": 215,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 21,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "start",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#start",
+    "access": null,
+    "description": null,
+    "lineNumber": 216,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 22,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "setPaused",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#setPaused",
+    "access": null,
+    "description": "Pause or unpause the animation with this setter",
+    "lineNumber": 225,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "boolean"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "bool",
+        "description": "Truthy values are coerced into booleans"
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 23,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "paused",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#paused",
+    "access": null,
+    "description": null,
+    "lineNumber": 226,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 24,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "getPaused",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#getPaused",
+    "access": null,
+    "description": "",
+    "lineNumber": 233,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{boolean} - True if the animation is paused"
+      }
+    ],
+    "params": [],
+    "return": {
+      "nullable": null,
+      "types": [
+        "boolean"
+      ],
+      "spread": false,
+      "description": "True if the animation is paused"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 25,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "addPlot",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#addPlot",
+    "access": null,
+    "description": "Creates a SimShimObj with the provided plot manifest",
+    "lineNumber": 250,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{string} - Alpha-numeric string ID to later retrieve the\n  object with"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "JSON Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "plot",
+        "description": "The manifest of the plot object you would like\n  generated"
+      },
+      {
+        "nullable": null,
+        "types": [
+          "JSON Object"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "settings",
+        "description": "[Optional] Additional options modifying the\n  colour of the plot object and it's shading (for surfaces)"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "string"
+      ],
+      "spread": false,
+      "description": "Alpha-numeric string ID to later retrieve the\n  object with"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 26,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "addObject",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#addObject",
+    "access": null,
+    "description": "Creates a SimShimObj with optional ThreeJS object and an optional update\nfunction to be called in the render loop.",
+    "examples": [
+      "var ss = new SimShim('#plot-div');\nss.addObject(null, myCoolFunc);\nss.addObject(myCoolObject, null);"
+    ],
+    "lineNumber": 313,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{string} - Alpha-numeric string ID to later retrieve the\n  object with"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "THREE.Object3D"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "threeObj",
+        "description": "[Optional] if an Object3D is given here,\n  it is added to the scene."
+      },
+      {
+        "nullable": null,
+        "types": [
+          "function()"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "updateFunction",
+        "description": "[Optional] if a function is given here,\n  it is added to the render loop and called every frame."
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "string"
+      ],
+      "spread": false,
+      "description": "Alpha-numeric string ID to later retrieve the\n  object with"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 27,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "getById",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#getById",
+    "access": null,
+    "description": "Retrieve a plot based on it's ID. IDs are returned by the `addPlot` and\n`addObject` methods.",
+    "lineNumber": 339,
+    "unknown": [
+      {
+        "tagName": "@returns",
+        "tagValue": "{SimShimObj} - The matching object or undefined if nothing matched"
+      }
+    ],
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "string"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "id",
+        "description": "The ID to search for"
+      }
+    ],
+    "return": {
+      "nullable": null,
+      "types": [
+        "SimShimObj"
+      ],
+      "spread": false,
+      "description": "The matching object or undefined if nothing matched"
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 28,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "removeObject",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#removeObject",
+    "access": null,
+    "description": "Does it's best to remove the object and any associated structures. This\nprocess is experimental because ThreeJS has questionable support for this\nat the moment.",
+    "lineNumber": 351,
+    "params": [
+      {
+        "nullable": null,
+        "types": [
+          "THREE.Object3D or SimShimObj"
+        ],
+        "spread": false,
+        "optional": false,
+        "name": "o",
+        "description": "The object to attempt removal of"
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 29,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "removeAllObjects",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#removeAllObjects",
+    "access": null,
+    "description": "A more thorough method than `removeObject`, this method tries removing all\nobjects and also tries iterating through the ThreeJS structures and\ncalling various disposal methods. This method is also very experimental,\nand should not be relied upon too much (or at all if you don't want\nmemory leaks!)",
+    "lineNumber": 375,
+    "params": [],
+    "generator": false
+  },
+  {
+    "__docId__": 30,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "ids",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#ids",
+    "access": null,
+    "description": null,
+    "lineNumber": 396,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 31,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "paused",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#paused",
+    "access": null,
+    "description": null,
+    "lineNumber": 397,
+    "undocument": true,
+    "type": {
+      "types": [
+        "boolean"
+      ]
+    }
+  },
+  {
+    "__docId__": 32,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "removeById",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#removeById",
+    "access": null,
+    "description": "Remove a plot by it's ID. This attempts to remove the ThreeJS objects\nfrom memory, but this process has questionable results, so memory leaks\nmay occur.",
+    "lineNumber": 406,
+    "params": [
+      {
+        "name": "id",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 33,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "setSettings",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#setSettings",
+    "access": null,
+    "description": "Replace a subset of global settings at runtime. Currently supports\ncameraPosn, cameraAngle, orbitTarget, lightIntensity, and autoRotate",
+    "lineNumber": 425,
+    "params": [
+      {
+        "name": "settings",
+        "optional": true,
+        "types": [
+          "{}"
+        ],
+        "defaultRaw": {},
+        "defaultValue": "{}"
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 34,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "retargetCamera",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#retargetCamera",
+    "access": null,
+    "description": "Manually trigger camera to retarget. This will place the camera a\nreasonable distance back from the action and fixes where it is looking\nto a point near the middle of the action.",
+    "lineNumber": 466,
+    "params": [],
+    "generator": false
+  },
+  {
+    "__docId__": 35,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "animate",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#animate",
+    "access": null,
+    "description": null,
+    "lineNumber": 483,
+    "undocument": true,
+    "params": [],
+    "generator": false
+  },
+  {
+    "__docId__": 36,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "start",
+    "memberof": "src/SimShim.js~SimShim",
+    "longname": "src/SimShim.js~SimShim#start",
+    "access": null,
+    "description": null,
+    "lineNumber": 504,
+    "undocument": true,
+    "params": [],
+    "generator": false
+  },
+  {
+    "__docId__": 37,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/SimShimObj.js",
+    "memberof": null,
+    "longname": "src/SimShimObj.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import THREE from 'three'\nimport math from 'mathjs'\n\nimport U from './SimShimUtil'\nimport F from './SimShimUtilFunctional'\nimport { newParseError } from './Errors'\n\n\n/**\n * Responsible for parsing input manifests into ThreeJS objects and\n * creating update functions. Exported interface is just a constructor and\n * an `update` method.\n *\n * Advanced usage might require access to the input manifest, ThreeJS object,\n * update function, etc. The original input is cached in the `manifest`\n * instance variable, and an instance variable called `controller` holds\n * the reference to the ThreeJS object (`threeObj`), the update function\n * (`next`), and other properties specific to the implementation.\n *\n */\nexport default class SimShimObj {\n\n\n  constructor(id, manifest, threeObj, update) {\n    this.id = id\n    this.manifest = manifest\n    this.threeObj = threeObj\n    this.update = update\n  }\n\n\n  static fromPlotManifest(id, manifest, { color, shading }) {\n\n    let o\n    switch (manifest.type) {\n      case 'lineplot':\n        o = SimShimObj._initLineplot(manifest, color)\n        break;\n\n      case 'surfaceplot':\n        o = SimShimObj._initSurface(manifest, color, shading)\n        break;\n\n      // TODO: \"ode3\", \"pde3\", \"graph\", ...?\n\n      default:\n        throw newParseError(`[SimShim] Unexpected plot type '${manifest.type}'`)\n    }\n\n    return new SimShimObj(id, manifest, o.threeObj, o.update)\n  }\n\n\n  static _initLineplot(man, color) {\n\n    let threeObj,\n        update,\n        // overridden by parsed, non-animated lines:\n        lineData = man.data,\n        // overridden by parsed, animated lines:\n        nextFunc = man.next ? man.next.bind(man) : null\n\n    // expand \"parse\" prop into several props the rest of the function needs\n    if (man.parse) {\n\n      // fns holds the parsed x(t), y(t), and z(t) funcitons\n      let fns = []\n      for (let i = 0; i < man.parse.length; i++) {\n\n        let tree     = math.parse(man.parse[i]),\n            symNames = U.uniqueSymbolNames( tree ),\n            compiled = tree.compile();\n\n        if (symNames.length > 1) throw newParseError(\"[SimShim] Argument Error: \"+\n          \"Please use 0 or 1 symbols for parsed lineplot functions\")\n\n        // inject an error message into any incorrect expressions\n        fns.push( t => {\n          let s = {}\n          if (symNames.length > 0) s[symNames[0]] = t\n          return compiled.eval(s)\n        })\n      }\n\n      let f = (t) => new THREE.Vector3(fns[0](t), fns[1](t), fns[2](t))\n\n      if (man.animated) { // animated lineplot\n\n        // create 'next' function\n        let scope = {\n          t: man.start,\n          dt: man.step\n        }\n        nextFunc = function () {\n          let xyz = f( scope.t )\n          scope.t += scope.dt\n          return xyz\n        }\n\n      } else { // static lineplot\n\n        // sample from the functions\n        lineData = []\n        for (let t = man.start; t < man.end; t+=man.step) lineData.push( f(t) )\n\n      }\n    }\n\n    /**  BUILD THREE JS OBJECT  **/\n\n    // TODO support for custom shaders\n    let material = new THREE.LineBasicMaterial({\n        color: color,\n        linewidth: 2\n    })\n\n    // animated lineplot\n    if (man.animated) {\n\n      let geometry = new THREE.Geometry()\n      geometry.dynamic = true\n      // initialize all points in geometry to the initial point\n      let initialXyz = U.toVec3( nextFunc() )\n      for (let j=0; j<man.lineLength; j++) geometry.vertices.push(initialXyz)\n      // create and attach THREE object\n      let traj = new THREE.Line(geometry, material)\n      traj.frustumCulled = false\n      threeObj = traj\n      // update function wrapper that calls \"next\" on manifest.\n      // NOTE: references \"this\" which will be bound to an instance later\n      update = () => {\n        threeObj.geometry.vertices.shift()\n        threeObj.geometry.vertices.push( U.toVec3( nextFunc() ) )\n        threeObj.geometry.verticesNeedUpdate = true\n      }\n\n    } else { // static lineplot\n\n      let geometry = new THREE.Geometry()\n      // fill the geometry with provided points\n      geometry.vertices = lineData.map( U.toVec3 )\n      // construct THREE object\n      threeObj = new THREE.Line(geometry, material)\n      // don't change geometry on update\n      update = () => {}\n\n    }\n\n    return { threeObj, update }\n  }\n\n\n  static _initSurface(man, color, shading) {\n\n    let threeObj,\n        update,\n        // overridden by parsed, non-animated surfaces:\n        surfData = man.data,\n        // overridden by parsed, animated surfaces:\n        nextFunc = man.next ? man.next.bind(man) : null\n\n    if (man.parse) {\n      // Parse the string provided and add a mesh + update function\n      let fn,\n          tree     = math.parse(man.parse),\n          symNames = U.uniqueSymbolNames( tree ),\n          compiled = tree.compile(),\n          maxAllowedVars = 2\n\n      // special case for animations\n      if (symNames.indexOf(\"t\") != -1) maxAllowedVars++\n\n      if (symNames.length <= maxAllowedVars) {\n        let namesLeft = symNames.filter((n) => n !== 't')\n        fn = (vars, t) => {\n          let scope = {t: t}\n          namesLeft.forEach((n) => scope[n]=vars.shift());\n          return compiled.eval(scope)\n        }\n      } else {\n        throw newParseError(\"[SimShim] Invalid Surfaceplot 'parse' Parameter: use 0, 1, or 2 symbols, \" +\n          \"plus 't' if you are animating a surface.\")\n      }\n\n      // handle animation\n      if (man.animated) {\n        // create 'next' function\n        let scope = {\n          t: man.start,\n          dt: man.step\n        }\n        nextFunc = function() {\n          // sample from the fn\n          let mesh = []\n          // construct initial condition\n          for (let x = man.minX; x < man.maxX; x+=man.step) {\n            let row = []\n            for (let y = man.minY; y < man.maxY; y+=man.step) {\n              row.push( fn([x,y], scope.t) )\n            }\n            mesh.push( row )\n          }\n          scope.t += scope.dt\n          return mesh\n        }\n\n      // not animated\n      } else {\n        // sample from the fn\n        surfData = []\n        for (let x = man.minX; x < man.maxX; x+=man.step) {\n          let row = []\n          for (let y = man.minY; y < man.maxY; y+=man.step) {\n            row.push( fn([x,y]) )\n          };\n          surfData.push( row )\n        }\n      }\n    } // end parsing\n\n    // materials\n    let material = new THREE.MeshLambertMaterial({\n        color: color,\n        shading: shading,\n        side: THREE.DoubleSide,\n    })\n    if (man.wireframe) { // TODO fix\n      let wireframeMaterial = new THREE.MeshBasicMaterial({\n        color: man.wireframeColor || 0xeeeeee,\n        wireframe: true,\n        transparent: true\n      })\n    }\n\n    if (man.animated) {\n\n      let geometry = U.makeSurfaceGeometry(\n        man.minX, man.minY, man.maxX, man.maxY, nextFunc()\n      )\n      geometry.computeFaceNormals()\n      geometry.computeVertexNormals()\n\n      if (man.wireframe) { // TODO wireframes\n        let multiMaterial = [ material, wireframeMaterial ]\n        threeObj = THREE.SceneUtils.createMultiMaterialObject(\n          geometry,\n          multiMaterial\n        )\n      } else {\n        threeObj = new THREE.Mesh( geometry, material )\n      }\n      update = () => {\n        // replace entire geometry object\n        // TODO better implementation\n        let geo = U.makeSurfaceGeometry(\n          man.minX, man.minY, man.maxX, man.maxY, nextFunc()\n        )\n        geo.computeFaceNormals()\n        geo.computeVertexNormals()\n        geo.verticesNeedUpdate = true // flag for update\n        // threeJS holds references to geometries in object3Ds,\n        // so we must call .dispose() to avoid memory leaks\n        // TODO: diff and update instead of disposing\n        threeObj.geometry.dispose()\n        threeObj.geometry = geo\n      }\n\n    } else {\n      let geometry = U.makeSurfaceGeometry(\n        man.minX, man.minY, man.maxX, man.maxY, surfData\n      )\n      geometry.computeFaceNormals()\n      geometry.computeVertexNormals()\n      threeObj = new THREE.Mesh( geometry, material )\n      // don't change geometry\n      update = () => {}\n    }\n\n    // Rotate the surface by inputting...\n    //   * a quaternion (4 component array or THREE.Quaternion) that\n    //     is applied to the mesh, or\n    //   * a vector (3 component array or THREE.Vector3) that is interpretted\n    //     as a transformation of the vector (0,0,1). A quaternion is\n    //     interpolated from the input and (0,0,1), and this is used to\n    //     rotate the surface. This is just provided as a quick way to get\n    //     a rough rotation in place, and the resulting surface might be\n    //     rotated around in an undesirable way.\n    if (man.rotation) {\n      let q\n      if (man.rotation instanceof THREE.Quaternion) {\n        q = rotation\n      } else if (man.rotation.length === 4) {\n        q = new THREE.Quaternion().fromArray( man.rotation )\n      } else {\n        let up = new THREE.Vector3(0,0,1)\n        let rotn = U.toVec3( man.rotation )\n        rotn.normalize()\n        q = new THREE.Quaternion().setFromUnitVectors(up, rotn)\n      }\n      threeObj.setRotationFromQuaternion(q)\n    }\n\n    return { threeObj, update }\n  }\n\n\n}\n"
+  },
+  {
+    "__docId__": 38,
+    "kind": "class",
+    "static": true,
+    "variation": null,
+    "name": "SimShimObj",
+    "memberof": "src/SimShimObj.js",
+    "longname": "src/SimShimObj.js~SimShimObj",
+    "access": null,
+    "export": true,
+    "importPath": "sim-shim/src/SimShimObj.js",
+    "importStyle": "SimShimObj",
+    "description": "Responsible for parsing input manifests into ThreeJS objects and\ncreating update functions. Exported interface is just a constructor and\nan `update` method.\n\nAdvanced usage might require access to the input manifest, ThreeJS object,\nupdate function, etc. The original input is cached in the `manifest`\ninstance variable, and an instance variable called `controller` holds\nthe reference to the ThreeJS object (`threeObj`), the update function\n(`next`), and other properties specific to the implementation.",
+    "lineNumber": 21,
+    "interface": false
+  },
+  {
+    "__docId__": 39,
+    "kind": "constructor",
+    "static": false,
+    "variation": null,
+    "name": "constructor",
+    "memberof": "src/SimShimObj.js~SimShimObj",
+    "longname": "src/SimShimObj.js~SimShimObj#constructor",
+    "access": null,
+    "description": null,
+    "lineNumber": 24,
+    "undocument": true,
+    "params": [
+      {
+        "name": "id",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "manifest",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "threeObj",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "update",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 40,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "id",
+    "memberof": "src/SimShimObj.js~SimShimObj",
+    "longname": "src/SimShimObj.js~SimShimObj#id",
+    "access": null,
+    "description": null,
+    "lineNumber": 25,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 41,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "manifest",
+    "memberof": "src/SimShimObj.js~SimShimObj",
+    "longname": "src/SimShimObj.js~SimShimObj#manifest",
+    "access": null,
+    "description": null,
+    "lineNumber": 26,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 42,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "threeObj",
+    "memberof": "src/SimShimObj.js~SimShimObj",
+    "longname": "src/SimShimObj.js~SimShimObj#threeObj",
+    "access": null,
+    "description": null,
+    "lineNumber": 27,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 43,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "update",
+    "memberof": "src/SimShimObj.js~SimShimObj",
+    "longname": "src/SimShimObj.js~SimShimObj#update",
+    "access": null,
+    "description": null,
+    "lineNumber": 28,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 44,
+    "kind": "method",
+    "static": true,
+    "variation": null,
+    "name": "fromPlotManifest",
+    "memberof": "src/SimShimObj.js~SimShimObj",
+    "longname": "src/SimShimObj.js~SimShimObj.fromPlotManifest",
+    "access": null,
+    "description": null,
+    "lineNumber": 32,
+    "undocument": true,
+    "params": [
+      {
+        "name": "id",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "manifest",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "objectPattern2",
+        "types": [
+          "{\"color\": *, \"shading\": *}"
+        ],
+        "defaultRaw": {
+          "color": null,
+          "shading": null
+        },
+        "defaultValue": "{\"color\":null,\"shading\":null}"
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 45,
+    "kind": "method",
+    "static": true,
+    "variation": null,
+    "name": "_initLineplot",
+    "memberof": "src/SimShimObj.js~SimShimObj",
+    "longname": "src/SimShimObj.js~SimShimObj._initLineplot",
+    "access": null,
+    "description": null,
+    "lineNumber": 54,
+    "undocument": true,
+    "params": [
+      {
+        "name": "man",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "color",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 46,
+    "kind": "method",
+    "static": true,
+    "variation": null,
+    "name": "_initSurface",
+    "memberof": "src/SimShimObj.js~SimShimObj",
+    "longname": "src/SimShimObj.js~SimShimObj._initSurface",
+    "access": null,
+    "description": null,
+    "lineNumber": 153,
+    "undocument": true,
+    "params": [
+      {
+        "name": "man",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "color",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "shading",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 47,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/SimShimPlotCtx.js",
+    "memberof": null,
+    "longname": "src/SimShimPlotCtx.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import THREE from 'three'\n\n\n/**\n * This is a container class that holds everything needed for rendering (the\n * scene, camera, renderer, list of SimShimObjs, lights, ...) and also\n * some meta info about the scene like the bounding box around all geometries\n * it is holding (for automatic camera targeting).\n *\n */\nexport default class SimShimPlotCtx {\n  constructor (renderer, scene, camera, controls, light) {\n    this.renderer = renderer;\n    this.scene    = scene;\n    this.camera   = camera;\n    this.controls = controls;\n    this.light    = light;\n    this.objects  = [];\n  }\n\n  updateMetrics () {\n    // init (also defaults for when no objects exist)\n    var res = {\n      'maxX': 0, 'maxY': 0, 'maxZ': 0,\n      'minX': 0, 'minY': 0, 'minZ': 0,\n      'midX': 0, 'midY': 0, 'midZ': 0,\n      'distX': 1, 'distY': 1, 'distZ': 1\n    };\n\n    // set Max and Min helper\n    function setMaxMin (data) {\n      for (let j = 0; j < data.length; j++) {\n        var px = data[j][0] || data[j].x,\n            py = data[j][1] || data[j].y,\n            pz = data[j][2] || data[j].z;\n        // set max\n        res.maxX = px > res.maxX ? px : res.maxX;\n        res.maxY = py > res.maxY ? py : res.maxY;\n        res.maxZ = pz > res.maxZ ? pz : res.maxZ;\n        // set min\n        res.minX = px < res.minX ? px : res.minX;\n        res.minY = py < res.minY ? py : res.minY;\n        res.minZ = pz < res.minZ ? pz : res.minZ;\n      }\n    }\n\n    // if objects exist, update these values\n    if (this.objects.length) {\n\n      // iterate\n      this.objects.forEach((ssObj) => {\n        if (ssObj.threeObj) setMaxMin( ssObj.threeObj.geometry.vertices )\n      });\n\n      // compute extra metrics\n      res.midX    = (res.maxX + res.minX)/2;\n      res.midY    = (res.maxY + res.minY)/2;\n      res.midZ    = (res.maxZ + res.minZ)/2;\n      res.distX   = (res.maxX - res.minX)/2;\n      res.distY   = (res.maxY - res.minY)/2;\n      res.distZ   = (res.maxZ - res.minZ)/2;\n\n    }\n\n    // computed metrics\n\n    res.maxDist = Math.sqrt( Math.pow(res.distX, 2)\n                           + Math.pow(res.distY, 2)\n                           + Math.pow(res.distZ, 2)\n                           );\n    res.center  = new THREE.Vector3(res.midX, res.midY, res.midZ);\n\n    // set and return\n\n    this.metrics = res;\n    return res;\n  }\n\n  render () {\n    this.renderer.render(this.scene, this.camera);\n  }\n}\n"
+  },
+  {
+    "__docId__": 48,
+    "kind": "class",
+    "static": true,
+    "variation": null,
+    "name": "SimShimPlotCtx",
+    "memberof": "src/SimShimPlotCtx.js",
+    "longname": "src/SimShimPlotCtx.js~SimShimPlotCtx",
+    "access": null,
+    "export": true,
+    "importPath": "sim-shim/src/SimShimPlotCtx.js",
+    "importStyle": "SimShimPlotCtx",
+    "description": "This is a container class that holds everything needed for rendering (the\nscene, camera, renderer, list of SimShimObjs, lights, ...) and also\nsome meta info about the scene like the bounding box around all geometries\nit is holding (for automatic camera targeting).",
+    "lineNumber": 11,
+    "interface": false
+  },
+  {
+    "__docId__": 49,
+    "kind": "constructor",
+    "static": false,
+    "variation": null,
+    "name": "constructor",
+    "memberof": "src/SimShimPlotCtx.js~SimShimPlotCtx",
+    "longname": "src/SimShimPlotCtx.js~SimShimPlotCtx#constructor",
+    "access": null,
+    "description": null,
+    "lineNumber": 12,
+    "undocument": true,
+    "params": [
+      {
+        "name": "renderer",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "scene",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "camera",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "controls",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "light",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 50,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "renderer",
+    "memberof": "src/SimShimPlotCtx.js~SimShimPlotCtx",
+    "longname": "src/SimShimPlotCtx.js~SimShimPlotCtx#renderer",
+    "access": null,
+    "description": null,
+    "lineNumber": 13,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 51,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "scene",
+    "memberof": "src/SimShimPlotCtx.js~SimShimPlotCtx",
+    "longname": "src/SimShimPlotCtx.js~SimShimPlotCtx#scene",
+    "access": null,
+    "description": null,
+    "lineNumber": 14,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 52,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "camera",
+    "memberof": "src/SimShimPlotCtx.js~SimShimPlotCtx",
+    "longname": "src/SimShimPlotCtx.js~SimShimPlotCtx#camera",
+    "access": null,
+    "description": null,
+    "lineNumber": 15,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 53,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "controls",
+    "memberof": "src/SimShimPlotCtx.js~SimShimPlotCtx",
+    "longname": "src/SimShimPlotCtx.js~SimShimPlotCtx#controls",
+    "access": null,
+    "description": null,
+    "lineNumber": 16,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 54,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "light",
+    "memberof": "src/SimShimPlotCtx.js~SimShimPlotCtx",
+    "longname": "src/SimShimPlotCtx.js~SimShimPlotCtx#light",
+    "access": null,
+    "description": null,
+    "lineNumber": 17,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 55,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "objects",
+    "memberof": "src/SimShimPlotCtx.js~SimShimPlotCtx",
+    "longname": "src/SimShimPlotCtx.js~SimShimPlotCtx#objects",
+    "access": null,
+    "description": null,
+    "lineNumber": 18,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 56,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "updateMetrics",
+    "memberof": "src/SimShimPlotCtx.js~SimShimPlotCtx",
+    "longname": "src/SimShimPlotCtx.js~SimShimPlotCtx#updateMetrics",
+    "access": null,
+    "description": null,
+    "lineNumber": 21,
+    "undocument": true,
+    "params": [],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 57,
+    "kind": "member",
+    "static": false,
+    "variation": null,
+    "name": "metrics",
+    "memberof": "src/SimShimPlotCtx.js~SimShimPlotCtx",
+    "longname": "src/SimShimPlotCtx.js~SimShimPlotCtx#metrics",
+    "access": null,
+    "description": null,
+    "lineNumber": 75,
+    "undocument": true,
+    "type": {
+      "types": [
+        "*"
+      ]
+    }
+  },
+  {
+    "__docId__": 58,
+    "kind": "method",
+    "static": false,
+    "variation": null,
+    "name": "render",
+    "memberof": "src/SimShimPlotCtx.js~SimShimPlotCtx",
+    "longname": "src/SimShimPlotCtx.js~SimShimPlotCtx#render",
+    "access": null,
+    "description": null,
+    "lineNumber": 79,
+    "undocument": true,
+    "params": [],
+    "generator": false
+  },
+  {
+    "__docId__": 59,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/SimShimSanitize.js",
+    "memberof": null,
+    "longname": "src/SimShimSanitize.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import THREE from 'three'\n// import chai from 'chai'\n\nimport { newParseError } from './Errors'\n\n\n/**\n * When a plot manifest is added, it is sent through this class before parsing\n * to check for correctness. This allows you to basically guess your way through\n * creating a plot manifest, as you'll be told exactly what needs to be changed\n * to accomplish what this class *thinks* you're trying to do.\n */\nexport default class SimShimSanitize {\n\n  static _handle(str, policy) {\n    switch (policy) {\n      case 'error':\n        console.error('[SimShim] '+str);\n        break;\n      case 'warn':\n        console.warn('[SimShim] '+str);\n        break;\n      default:\n        throw newParseError('[SimShim] '+str);\n    }\n  }\n\n  // everything is optional in settings\n  static checkSettings(settings, policy='warn') {\n    let s = [],\n        i = (x, o) => x instanceof o,\n        t = (obj, str) => typeof obj === str\n        ;\n\n    if (!t(settings.far, 'undefined') && !t(settings.far, 'number')) s.push('The \"far\" setting must be a number');\n    if (!t(settings.near, 'undefined') && !t(settings.near, 'number')) s.push('The \"near\" setting must be a number');\n    if (!t(settings.cameraAngle, 'undefined') && !t(settings.cameraAngle, 'number')) s.push('The \"cameraAngle\" setting must be a number');\n    if (!t(settings.lightIntensity, 'undefined') && !t(settings.lightIntensity, 'number')) s.push('The \"lightIntensity\" setting must be a number');\n\n    if ( settings.ctrlType && !t(settings.ctrlType, 'string')) s.push('The \"ctrlType\" setting must be a string');\n    if ( settings.clearColor && !t(settings.clearColor, 'string')) s.push('The \"clearColor\" setting must be a string');\n\n    if ( settings.showGrid && !t(settings.showGrid, 'boolean')) s.push('The \"showGrid\" setting must be a boolean');\n    if ( settings.showAxes && !t(settings.showAxes, 'boolean')) s.push('The \"showAxes\" setting must be a boolean');\n    if ( settings.autoRotate && !t(settings.autoRotate, 'boolean')) s.push('The \"autoRotate\" setting must be a boolean');\n\n    if ( settings.cameraPosn && ! (i(settings.cameraPosn, Array) || i(settings.cameraPosn, THREE.Vector3))) s.push('The \"cameraPosn\" setting must be an array or THREE.Vector3');\n    if ( settings.orbitTarget && ! (i(settings.orbitTarget, Array) || i(settings.orbitTarget, THREE.Vector3))) s.push('The \"orbitTarget\" setting must be an array or THREE.Vector3');\n\n    if (s.length) this._handle(s.join('\\n'), policy);\n  }\n\n  // some required fields exist in plot objects. Ugly conditional nesting\n  // required to drill down and provide useful errors.\n  static checkPlotObj(plot, policy='warn') {\n    let s = [],\n        i = (x, o) => x instanceof o,\n        t = (obj, str) => typeof obj === str,\n        all = (stuff, cond) => stuff.findIndex((x) => !cond(x)) == -1,\n        isArr = (x) => i(x, Array),\n        isNum = (x) => t(x, 'number'),\n        isNumArr = (x) => all(x, (y) => isNum(y)),\n        isNumArr2D = (pts) => all(pts, (pt)=>(isArr(pt) && isNumArr(pt))),\n        x // use this with the comma operator to save a bit of space\n        ;\n\n    // OPTIONAL\n\n    if (x=plot.label, x && !t(x, 'string')) s.push('The \"label\" attribute must be a string');\n    if (x=plot.rotation, x && !(isNumArr(x) || i(x, THREE.Quaternion))) s.push('The \"rotation\" attribute must be an array of numbers (a rotation of [0,0,1] that will be applied to the plot) or a THREE.Quaternion');\n\n    // REQUIRED\n\n    if (x=plot.type, !x || !t(x, 'string')) s.push('The \"type\" attribute is required and must be a string');\n    else {\n\n      if (plot.type == 'lineplot') { // ===============================================================================================\n\n        if (plot.parse) {\n\n          if (x=plot.parse, !isArr(x) || !all(x, (y) => t(y, 'string'))) s.push('The \"parse\" attribute must be an array of strings');\n          if (!isNum(plot.start)) s.push('A parsed lineplot requires a \"start\" attribute (initial t value)');\n          if (!isNum(plot.step)) s.push('A parsed lineplot requires a \"step\" attribute (timestep between t values)');\n\n          if (plot.animated) { // lineplot, parsed, animated\n\n            if (!isNum(plot.lineLength)) s.push('This type of lineplot requires a \"lineLength\" attribute (animated lines have finite length)');\n\n          } else { // lineplot, parsed, not animated\n\n            // handled above.\n\n          }\n        } else {\n\n          if (plot.animated) { // lineplot, not parsed, animated\n\n            if (!isNum(plot.lineLength)) s.push('This type of lineplot requires a \"lineLength\" attribute (animated lines have finite length)');\n            if (x=plot.next, !x || !t(x, 'function')) s.push('This type of lineplot requires a \"next\" attribute (a function producing the next point)');\n\n          } else { // lineplot, not parsed, not animated\n\n            if (x=plot.data, !x || !isArr(x) || !isNumArr2D(x)) s.push('This type of lineplot requires a \"next\" attribute (a function producing the next point)');\n\n          }\n\n        }\n\n      } else if (plot.type == 'surfaceplot') { // =====================================================================================\n\n        if (!isNum(plot.minX)) s.push('Surfaceplots require the \"minX\" attribute (minimum x value)');\n        if (!isNum(plot.maxX)) s.push('Surfaceplots require the \"maxX\" attribute (maximum x value)');\n        if (!isNum(plot.minY)) s.push('Surfaceplots require the \"minY\" attribute (minimum y value)');\n        if (!isNum(plot.maxY)) s.push('Surfaceplots require the \"maxY\" attribute (maxmium y value)');\n\n        if (plot.parse) {\n\n          if (!isNum(plot.step)) s.push('A parsed surfaceplot requires the \"step\" attribute (interval between adjascent x and y values)');\n          if (x=plot.parse, !x || !t(x, 'string')) s.push('A parsed surfaceplot requires the \"parse\" attribute, which must be a string representing an expression for z, ie the \"f\" in \"z=f(x,y)\" (ex: \"sin(x)*y\", \"t*x*y\", etc. Don\\'t forget to add the \"animated\" attribute and a \"t\" in the function if you want it to be animated)');\n\n          if (plot.animated) { // surfaceplot, parsed, animated\n\n            if (!isNum(plot.start)) s.push('A parsed, animated surfaceplot requires the \"start\" attribute (initial time value)');\n            if (!isNum(plot.dt)) s.push('A parsed, animated surfaceplot requires the \"dt\" attribute (time step per frame)');\n\n          } else { // surfaceplot, parsed, not animated\n\n            // handled above.\n\n          }\n\n        } else {\n\n          if (plot.animated) { // surfaceplot, not parsed, animated\n\n            if (x=plot.next, !x || !t(x, 'function')) s.push('An animated surfaceplot requires a \"next\" attribute (provides the a new 2D array of heights each frame) or a \"parse\" attribute')\n\n          } else { // surfaceplot, not parsed, not animated\n\n            if (x=plot.data, !x || !isArr(x) || !isNumArr2D(x)) s.push('This type of surfaceplot requires the \"data\" attribute (2D array of height values)');\n\n          }\n        }\n      }\n    }\n\n    if (s.length) this._handle(s.join('\\n'), policy);\n  }\n\n}\n"
+  },
+  {
+    "__docId__": 60,
+    "kind": "class",
+    "static": true,
+    "variation": null,
+    "name": "SimShimSanitize",
+    "memberof": "src/SimShimSanitize.js",
+    "longname": "src/SimShimSanitize.js~SimShimSanitize",
+    "access": null,
+    "export": true,
+    "importPath": "sim-shim/src/SimShimSanitize.js",
+    "importStyle": "SimShimSanitize",
+    "description": "When a plot manifest is added, it is sent through this class before parsing\nto check for correctness. This allows you to basically guess your way through\ncreating a plot manifest, as you'll be told exactly what needs to be changed\nto accomplish what this class *thinks* you're trying to do.",
+    "lineNumber": 13,
+    "interface": false
+  },
+  {
+    "__docId__": 61,
+    "kind": "method",
+    "static": true,
+    "variation": null,
+    "name": "_handle",
+    "memberof": "src/SimShimSanitize.js~SimShimSanitize",
+    "longname": "src/SimShimSanitize.js~SimShimSanitize._handle",
+    "access": null,
+    "description": null,
+    "lineNumber": 15,
+    "undocument": true,
+    "params": [
+      {
+        "name": "str",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "policy",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 62,
+    "kind": "method",
+    "static": true,
+    "variation": null,
+    "name": "checkSettings",
+    "memberof": "src/SimShimSanitize.js~SimShimSanitize",
+    "longname": "src/SimShimSanitize.js~SimShimSanitize.checkSettings",
+    "access": null,
+    "description": null,
+    "lineNumber": 29,
+    "undocument": true,
+    "params": [
+      {
+        "name": "settings",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "policy",
+        "optional": true,
+        "types": [
+          "string"
+        ],
+        "defaultRaw": "warn",
+        "defaultValue": "warn"
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 63,
+    "kind": "method",
+    "static": true,
+    "variation": null,
+    "name": "checkPlotObj",
+    "memberof": "src/SimShimSanitize.js~SimShimSanitize",
+    "longname": "src/SimShimSanitize.js~SimShimSanitize.checkPlotObj",
+    "access": null,
+    "description": null,
+    "lineNumber": 55,
+    "undocument": true,
+    "params": [
+      {
+        "name": "plot",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "policy",
+        "optional": true,
+        "types": [
+          "string"
+        ],
+        "defaultRaw": "warn",
+        "defaultValue": "warn"
+      }
+    ],
+    "generator": false
+  },
+  {
+    "__docId__": 64,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/SimShimUtil.js",
+    "memberof": null,
+    "longname": "src/SimShimUtil.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import THREE from 'three'\n\n\nexport default class SimShimUtil {\n\n\n  static toVec3(o) {\n    if (o instanceof THREE.Vector3) return o;\n    if (o instanceof Array) return new THREE.Vector3().fromArray(o);\n    console.error('Cannot coerce into Vector3');\n  }\n\n\n  static toQuat(o) {\n    if (o instanceof THREE.Quaternion) return o;\n    if (o instanceof Array) return new THREE.Quaternion().fromArray(o);\n    console.error('Cannot coerce into Vector3');\n  }\n\n\n  // helper for mathjs expression parsing. In particular for evalutation and\n  // determining if \"t\" was used (interpretted as time)\n  static uniqueSymbolNames (tree) {\n    // return the unique symbolNodes of tree\n    // filter the SymbolNodes out\n    var arr = tree.filter((node) => {\n      return node.type == 'SymbolNode';\n    });\n    // get unique list of names\n    var dummy = {}, names = [];\n    for(var i = 0, l = arr.length; i < l; ++i){\n      if(!dummy.hasOwnProperty(arr[i].name)) {\n        names.push(arr[i].name);\n        dummy[arr[i].name] = 1;\n      }\n    }\n    return names;\n  }\n\n\n  // convert 2D array of data into a THREEjs geometry with faces and vertices\n  static makeSurfaceGeometry (minX,minY,maxX,maxY,data) {\n    var geometry = new THREE.Geometry();\n    // add vertices\n    var wid = data[0].length;\n    var hgt = data.length;\n    var dy = (maxY - minY)/hgt;\n    var dx = (maxX - minX)/wid;\n    for (var j = 0; j < hgt; j++) {\n      for (var i = 0; i < wid; i++) {\n        var v = new THREE.Vector3(\n          minX + i*dx,\n          minY + j*dy,\n          data[j][i]\n        );\n        geometry.vertices.push(v);\n      }\n    };\n    // create triangles\n    var triangles = [];\n    for (var j = 0; j < hgt - 1; j++) {\n      for (var i = 0; i < wid - 1; i++) {\n        // up-left, up-right, etc. points\n        var ul = data[j][i],\n            ur = data[j][i+1],\n            dl = data[j+1][i],\n            dr = data[j+1][i+1],\n            ind_ul =     j*wid + i,\n            ind_ur =     j*wid + (i+1),\n            ind_dl = (j+1)*wid + i,\n            ind_dr = (j+1)*wid + (i+1);\n        // create 2 faces from 4 points\n        geometry.faces.push(new THREE.Face3(\n          ind_ul, ind_ur, ind_dl\n        ));\n        geometry.faces.push(new THREE.Face3(\n          ind_ur, ind_dr, ind_dl\n        ));\n      }\n    }\n\n    return geometry;\n  }\n\n}\n"
+  },
+  {
+    "__docId__": 65,
+    "kind": "class",
+    "static": true,
+    "variation": null,
+    "name": "SimShimUtil",
+    "memberof": "src/SimShimUtil.js",
+    "longname": "src/SimShimUtil.js~SimShimUtil",
+    "access": null,
+    "export": true,
+    "importPath": "sim-shim/src/SimShimUtil.js",
+    "importStyle": "SimShimUtil",
+    "description": null,
+    "lineNumber": 4,
+    "undocument": true,
+    "interface": false
+  },
+  {
+    "__docId__": 66,
+    "kind": "method",
+    "static": true,
+    "variation": null,
+    "name": "toVec3",
+    "memberof": "src/SimShimUtil.js~SimShimUtil",
+    "longname": "src/SimShimUtil.js~SimShimUtil.toVec3",
+    "access": null,
+    "description": null,
+    "lineNumber": 7,
+    "undocument": true,
+    "params": [
+      {
+        "name": "o",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 67,
+    "kind": "method",
+    "static": true,
+    "variation": null,
+    "name": "toQuat",
+    "memberof": "src/SimShimUtil.js~SimShimUtil",
+    "longname": "src/SimShimUtil.js~SimShimUtil.toQuat",
+    "access": null,
+    "description": null,
+    "lineNumber": 14,
+    "undocument": true,
+    "params": [
+      {
+        "name": "o",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 68,
+    "kind": "method",
+    "static": true,
+    "variation": null,
+    "name": "uniqueSymbolNames",
+    "memberof": "src/SimShimUtil.js~SimShimUtil",
+    "longname": "src/SimShimUtil.js~SimShimUtil.uniqueSymbolNames",
+    "access": null,
+    "description": null,
+    "lineNumber": 23,
+    "undocument": true,
+    "params": [
+      {
+        "name": "tree",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 69,
+    "kind": "method",
+    "static": true,
+    "variation": null,
+    "name": "makeSurfaceGeometry",
+    "memberof": "src/SimShimUtil.js~SimShimUtil",
+    "longname": "src/SimShimUtil.js~SimShimUtil.makeSurfaceGeometry",
+    "access": null,
+    "description": null,
+    "lineNumber": 42,
+    "undocument": true,
+    "params": [
+      {
+        "name": "minX",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "minY",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "maxX",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "maxY",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "data",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 70,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/UtilFunctional.js",
+    "memberof": null,
+    "longname": "src/UtilFunctional.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "export function add(x1,x2) {\n  return x1 + x2;\n}\n\nexport function zip(x1,x2) {\n  if (x1.length != x2.length)\n    throw new Error('zip: lists not same length');\n  else return zipRec(x1,x2,[]);\n}\n\nfunction zipRec(x1,x2,zipped) {\n  if (x1.length == 0) return zipped;\n  else return zipRec( rest(x1), rest(x2), push([x1[0],x2[0]], zipped) );\n}\n\nexport function push(x,xs) {\n  xs.push(x);\n  return xs;\n}\n\nexport function sorted(list, fn) {\n  list.sort(fn); // undefined is fine as arg\n  return list;\n}\n\nexport function rest(list) {\n  return list.splice(1);\n}\n"
+  },
+  {
+    "__docId__": 71,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "add",
+    "memberof": "src/UtilFunctional.js",
+    "longname": "src/UtilFunctional.js~add",
+    "access": null,
+    "export": true,
+    "importPath": "sim-shim/src/UtilFunctional.js",
+    "importStyle": "{add}",
+    "description": null,
+    "lineNumber": 1,
+    "undocument": true,
+    "params": [
+      {
+        "name": "x1",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "x2",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 72,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "zip",
+    "memberof": "src/UtilFunctional.js",
+    "longname": "src/UtilFunctional.js~zip",
+    "access": null,
+    "export": true,
+    "importPath": "sim-shim/src/UtilFunctional.js",
+    "importStyle": "{zip}",
+    "description": null,
+    "lineNumber": 5,
+    "undocument": true,
+    "params": [
+      {
+        "name": "x1",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "x2",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 73,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "zipRec",
+    "memberof": "src/UtilFunctional.js",
+    "longname": "src/UtilFunctional.js~zipRec",
+    "access": null,
+    "export": false,
+    "importPath": "sim-shim/src/UtilFunctional.js",
+    "importStyle": null,
+    "description": null,
+    "lineNumber": 11,
+    "undocument": true,
+    "params": [
+      {
+        "name": "x1",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "x2",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "zipped",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 74,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "push",
+    "memberof": "src/UtilFunctional.js",
+    "longname": "src/UtilFunctional.js~push",
+    "access": null,
+    "export": true,
+    "importPath": "sim-shim/src/UtilFunctional.js",
+    "importStyle": "{push}",
+    "description": null,
+    "lineNumber": 16,
+    "undocument": true,
+    "params": [
+      {
+        "name": "x",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "xs",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 75,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "sorted",
+    "memberof": "src/UtilFunctional.js",
+    "longname": "src/UtilFunctional.js~sorted",
+    "access": null,
+    "export": true,
+    "importPath": "sim-shim/src/UtilFunctional.js",
+    "importStyle": "{sorted}",
+    "description": null,
+    "lineNumber": 21,
+    "undocument": true,
+    "params": [
+      {
+        "name": "list",
+        "types": [
+          "*"
+        ]
+      },
+      {
+        "name": "fn",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 76,
+    "kind": "function",
+    "static": true,
+    "variation": null,
+    "name": "rest",
+    "memberof": "src/UtilFunctional.js",
+    "longname": "src/UtilFunctional.js~rest",
+    "access": null,
+    "export": true,
+    "importPath": "sim-shim/src/UtilFunctional.js",
+    "importStyle": "{rest}",
+    "description": null,
+    "lineNumber": 26,
+    "undocument": true,
+    "params": [
+      {
+        "name": "list",
+        "types": [
+          "*"
+        ]
+      }
+    ],
+    "return": {
+      "types": [
+        "*"
+      ]
+    },
+    "generator": false
+  },
+  {
+    "__docId__": 77,
+    "kind": "file",
+    "static": true,
+    "variation": null,
+    "name": "src/index.js",
+    "memberof": null,
+    "longname": "src/index.js",
+    "access": null,
+    "description": null,
+    "lineNumber": 1,
+    "content": "import SimShim from './SimShim'\n\nwindow.SimShim = SimShim\n"
+  },
+  {
+    "__docId__": 79,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Infinity",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Infinity",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 80,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "NaN",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~NaN",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 81,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "undefined",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~undefined",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 82,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "null",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~null",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 83,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 84,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "object",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~object",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 85,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 86,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "function",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~function",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 87,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 88,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "boolean",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~boolean",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 89,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Symbol",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Symbol",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 90,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Error",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Error",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 91,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "EvalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~EvalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 92,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "InternalError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~InternalError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 93,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "RangeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RangeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 94,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "ReferenceError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ReferenceError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 95,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "SyntaxError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~SyntaxError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 96,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "TypeError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~TypeError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 97,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "URIError",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~URIError",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 98,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 99,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "number",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~number",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 100,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Date",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Date",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 101,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "String",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~String",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 102,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "string",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~string",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 103,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "RegExp",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~RegExp",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 104,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 105,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 106,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint8Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 107,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint8ClampedArray",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint8ClampedArray",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 108,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 109,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint16Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint16Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 110,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Int32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Int32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 111,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Uint32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Uint32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 112,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Float32Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float32Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 113,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Float64Array",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Float64Array",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 114,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Map",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Map",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 115,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Set",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Set",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 116,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "WeakMap",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakMap",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 117,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "WeakSet",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~WeakSet",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 118,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "ArrayBuffer",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~ArrayBuffer",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 119,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "DataView",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~DataView",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 120,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "JSON",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~JSON",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 121,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Promise",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Promise",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 122,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Generator",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Generator",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 123,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "GeneratorFunction",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~GeneratorFunction",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 124,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Reflect",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Reflect",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 125,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Proxy",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy",
+    "memberof": "BuiltinExternal/ECMAScriptExternal.js",
+    "longname": "BuiltinExternal/ECMAScriptExternal.js~Proxy",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 127,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "CanvasRenderingContext2D",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~CanvasRenderingContext2D",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 128,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "DocumentFragment",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~DocumentFragment",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 129,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Element",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Element",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Element",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 130,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Event",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Event",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Event",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 131,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "Node",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/Node",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~Node",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 132,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "NodeList",
+    "externalLink": "https://developer.mozilla.org/en-US/docs/Web/API/NodeList",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~NodeList",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 133,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "XMLHttpRequest",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~XMLHttpRequest",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  },
+  {
+    "__docId__": 134,
+    "kind": "external",
+    "static": true,
+    "variation": null,
+    "name": "AudioContext",
+    "externalLink": "https://developer.mozilla.org/en/docs/Web/API/AudioContext",
+    "memberof": "BuiltinExternal/WebAPIExternal.js",
+    "longname": "BuiltinExternal/WebAPIExternal.js~AudioContext",
+    "access": null,
+    "description": "",
+    "builtinExternal": true
+  }
+]
