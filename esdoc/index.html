@@ -48,7 +48,9 @@
 </div>
 </nav>
 
-<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><h1 id="3d-plotting-and-animation-using-webgl">3D Plotting and Animation Using WebGL</h1>
+<div class="content" data-ice="content"><div data-ice="index" class="github-markdown"><p><img src="https://raw.githubusercontent.com/codemaker1999/sim-shim-js/master/logo-150px.png" alt="logo"></p>
+<h4 id="simshim">SimShim</h4>
+<h1 id="3d-plotting-and-animation-using-webgl">3D Plotting and Animation Using WebGL</h1>
 <p><strong>Try it out and see examples at <a href="http://codemaker1999.github.io/sim-shim-js">http://codemaker1999.github.io/sim-shim-js</a></strong></p>
 <p>The main goals of this project are to provide</p>
 <ul>
@@ -63,60 +65,24 @@
 <p>There is an included set of examples that demonstrates all supported uses of
 the library in the <code>examples</code> folder. See them in action (and fiddle with them)
 <a href="http://codemaker1999.github.io/sim-shim-js">here</a>.</p>
-<h2 id="importing">Importing</h2>
-<p>This is a fairly large library, and so it might take a bit of time for
-your browser to load it. Because you cannot be sure how browsers will
-handle this, you should wait for the page to load before running any JS files
-that instantiate <code>SimShim</code>. The error you get when the library is not yet
-loaded will look something like this:</p>
-<pre><code><code class="source-code prettyprint">Uncaught TypeError: SimShim is not a constructor</code>
-</code></pre><p>To wait for the library to load, you can do one of the following:</p>
+<h2 id="usage">Usage</h2>
+<p>Plots are described by &quot;manifests&quot; (plain old JS Objects) that contain certain
+properties. This basically works as follows:</p>
 <ul>
-<li><p>Add a <code>defer</code> attribute to the <code>&lt;script&gt;</code> tag with your javascript that uses
-the library</p>
-<pre><code class="lang-html"><code class="source-code prettyprint">&lt;script src=&quot;.../sim-shim-bundle.js&quot;&gt;&lt;/script&gt;
-&lt;script defer src=&quot;.../your-file.js&quot;&gt;&lt;/script&gt;</code>
-</code></pre>
-<p>When this attribute is present (make sure the <code>async</code> attribute is not also
-present!), the script is run when the page is finished loading.</p>
+<li><p>You must specify a <code>&apos;type&apos;</code> property, with a value of either <code>&apos;lineplot&apos;</code> or
+<code>&apos;surfaceplot&apos;</code>.</p>
 </li>
-<li><p>If you&apos;re using JQuery, you can import the library using JS (meaning you
-don&apos;t need to have a <code>&lt;script&gt;</code> tag for <code>sim-shim-bundle.js</code> in your html
-at all) like this:</p>
-<pre><code class="lang-js"><code class="source-code prettyprint">$.getScript(&quot;.../sim-shim-bundle.js&quot;, function(){
-  var ss = new SimShim(&apos;#plot&apos;);
-  // ...
-});</code>
-</code></pre>
+<li><p>You can specify the optional <code>&apos;animated&apos;</code> property and set it to <code>true</code> or
+<code>false</code>. This lets the lib know you are trying to create an animated plot.</p>
 </li>
-<li><p>If you would like to have the <code>&lt;script&gt;</code> tag to import, you can also set up
-listeners for the event signifying the page has been loaded. To do this,
-put your SimShim code inside a function, say this one:</p>
-<pre><code class="lang-js"><code class="source-code prettyprint">function yourCoolInitializer() {
-  var ss = new SimShim(&apos;#plot&apos;);
-  // ...
-}</code>
-</code></pre>
-<p>Then, if you are using JQuery, you now just have to do the following:</p>
-<pre><code class="lang-js"><code class="source-code prettyprint">$(window).load(yourCoolInitializer)</code>
-</code></pre>
-<p>If you are using plain JS it&apos;s a bit messier, as there are several ways to do
-the listening depending on which browser is being used:</p>
-<pre><code class="lang-js"><code class="source-code prettyprint">if (window.addEventListener) {
-  window.addEventListener(&quot;load&quot;, yourCoolInitializer, false);
-} else if (window.attachEvent) {
-  window.attachEvent(&quot;onload&quot;, yourCoolInitializer);
-} else {
-  window.onload = yourCoolInitializer;
-}</code>
-</code></pre>
+<li><p>Now you can choose to specify the data yourself, or supply an expression
+string (like <code>&apos;sin(x)+3*y&apos;</code>) and have SimShim try to generate the data
+for you. This is done by specifying the <code>&apos;parse&apos;</code> property.</p>
 </li>
 </ul>
-<h2 id="usage">Usage</h2>
-<p>Just create a valid plot manifest (JSON object), and provide a DOM element for the plot to live in.</p>
-<p>There are several types of manifests, including lines in 3D space,
-animated 3D lines, and surface plots. For example, to make an interactive plot
-containing a triangle and a square, you could write:</p>
+<p>Once you have your manifest, you need to initialize the library with the dom
+element you want to display the plot in. This can be done in several ways, as
+shown in the first example below, which contains a triangle and a square:</p>
 <pre><code class="lang-js"><code class="source-code prettyprint">var triangle = {
     &quot;type&quot;: &quot;lineplot&quot;,
     &quot;data&quot;: [[0,0,0], [0,0,1], [0, 0.5, 0.5], [0,0,0]]
@@ -134,15 +100,19 @@ ss.addPlot( triangle );
 ss.addPlot( square );
 ss.start();</code>
 </code></pre>
-<p>to create an animated spiral / helix:</p>
+<p>In the next example we use the optional <code>animated</code> flag and ask SimShim to parse
+some expression strings and generate the data for us. The result of the code
+below is an animated spiral / helix:</p>
 <pre><code class="lang-js"><code class="source-code prettyprint">var animSpiral = {
     &quot;type&quot;      : &quot;lineplot&quot;,
     &quot;animated&quot;  : true,
     // provide parametric components:
     // [ x(t), y(t), z(t) ]
     &quot;parse&quot;     : [ &quot;sin(t)&quot;, &quot;cos(t)&quot;, &quot;t/10&quot; ],
+    // other needed properties for this plot type:
     &quot;start&quot;     : 0,
     &quot;step&quot;      : 1/40,
+    // your line must have a finite number of points!
     &quot;lineLength&quot;: 10000
 };
 
@@ -166,7 +136,9 @@ var ss = new SimShim(&apos;#plot-div&apos;);
 ss.addPlot( blanket );
 ss.start();</code>
 </code></pre>
-<p>and to create an animated surface plot, you might write:</p>
+<p>and to create an animated surface plot, you set the animated flag once again.
+If you are also using the <code>parse</code> property, note that <code>&apos;t&apos;</code> is always
+interpretted as time:</p>
 <pre><code class="lang-js"><code class="source-code prettyprint">var pulsingBlanket = {
     &quot;type&quot;: &quot;surfaceplot&quot;,
     &quot;animated&quot;: true,
@@ -185,7 +157,7 @@ var ss = new SimShim(&apos;#plot-div&apos;);
 ss.addPlot( pulsingBlanket );
 ss.start();</code>
 </code></pre>
-<p>Trying to remember which properties to use for specific plot types is very cumbersome, so there is a lot of built-in help for dealing with this problem. The <code>examples/</code> folder has a minimal example for each type of plot supported, so they&apos;re the best starting points. Otherwise, you can basically just guess your way through writing the manifests, as there is a built-in system that tells you (by logging errors in the console) if the manifest is missing any properties based on the type of plot you are using.</p>
+<p>Trying to remember which properties to use for specific plot types is very cumbersome, so there is a lot of built-in help for dealing with this problem. The <code>examples/</code> folder has a minimal example for each type of plot supported, so they&apos;re the best starting points. Otherwise, you can basically just guess your way through writing the manifests, as there is a built-in system that tells you (by logging errors in the console) if the manifest is missing any properties based on the type of plot you seem to be trying to create.</p>
 <p>Once the manifest is done, SimShim will figure the rest out. There are many customizable options, some of which can be found in the examples at <a href="http://codemaker1999.github.io/sim-shim-js">http://codemaker1999.github.io/sim-shim-js</a>.</p>
 <h2 id="controls">Controls</h2>
 <p>The scheme used for controls is a camera looking at a point in space (the orbit target) that is some distance away from this point. The camera orbits around this point when the mouse is dragged, and gets closer / farther by zooming. More detail is below, with mobile phone browser instructions in square brackets.</p>
@@ -197,6 +169,68 @@ ss.start();</code>
 <li><p>Scroll [pinch] to zoom closer to the camera orbit target</p>
 </li>
 <li><p>Use the arrow keys to manually move the point the camera is looking at</p>
+</li>
+</ul>
+<h2 id="importing">Importing</h2>
+<p>This is a fairly large library, and so it might take a bit of time for
+your browser to download it. If you are not concerned about the load time
+in your web page before all content is displayed, you can simply ignore this
+and just make sure the script tag that imports this library is above any script
+tags that make use of it in your html. If you want the best experience on your
+site then you should do one of the following (or similar)</p>
+<ul>
+<li><p>[Recommended] Add a <code>defer</code> attribute to all <code>&lt;script&gt;</code> tags that import or
+use the library:</p>
+<pre><code class="lang-html"><code class="source-code prettyprint">&lt;script defer src=&quot;.../sim-shim-bundle.js&quot;&gt;&lt;/script&gt;
+&lt;script defer src=&quot;.../your-simulation.js&quot;&gt;&lt;/script&gt;</code>
+</code></pre>
+<p>When this attribute is present, the script is run when the page is finished
+loading. The original order of the scripts is maintained when the browser
+processes deferred scripts (make sure you import the lib above the script tags
+that use it).</p>
+</li>
+<li><p>Make sure your script tags are at the bottom of the <code>&lt;body&gt;</code> tag, after all
+other content, and that the tag that imports the library is above the scripts
+that use it.</p>
+<pre><code class="lang-html"><code class="source-code prettyprint">  &lt;!-- ... --&gt;
+  &lt;script src=&quot;.../sim-shim-bundle.js&quot;&gt;&lt;/script&gt;
+  &lt;script src=&quot;.../your-simulation.js&quot;&gt;&lt;/script&gt;
+&lt;/body&gt;</code>
+</code></pre>
+</li>
+<li><p>If you&apos;re using JQuery, you can import the library using JS (meaning you
+don&apos;t need to have a <code>&lt;script&gt;</code> tag for <code>sim-shim-bundle.js</code> in your html
+at all) like this:</p>
+<pre><code class="lang-js"><code class="source-code prettyprint">// with JQuery
+
+$.getScript(&quot;.../sim-shim-bundle.js&quot;, function(){
+  var ss = new SimShim(&apos;#plot&apos;);
+  // ...
+});
+
+// without JQuery
+
+function getScript(url, callback) {
+    // Adding the script tag to the head as suggested before
+    var head = document.getElementsByTagName(&apos;head&apos;)[0];
+    var script = document.createElement(&apos;script&apos;);
+    script.type = &apos;text/javascript&apos;;
+    script.src = url;
+
+    // Then bind the event to the callback function.
+    // There are several events for cross browser compatibility.
+    script.onreadystatechange = callback;
+    script.onload = callback;
+
+    // Fire the loading
+    head.appendChild(script);
+}
+
+getScript(&quot;.../sim-shim-bundle.js&quot;, function(){
+  var ss = new SimShim(&apos;#plot&apos;);
+  // ...
+});</code>
+</code></pre>
 </li>
 </ul>
 <h2 id="notes-and-tips">Notes and Tips</h2>
@@ -219,10 +253,13 @@ ss.start();</code>
 <h2 id="building">Building</h2>
 <pre><code class="lang-bash"><code class="source-code prettyprint">npm install
 # only un-minified files:
-npm build
-npm watch
+npm build-dev
+npm watch-dev
+# only minified files:
+npm build-prod
+npm watch-prod
 # build both dev and production
-npm buildall</code>
+npm build-all</code>
 </code></pre>
 <h2 id="what-s-next-">What&apos;s Next?</h2>
 <ul>

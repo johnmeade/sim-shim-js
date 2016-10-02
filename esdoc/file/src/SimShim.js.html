@@ -37,7 +37,6 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimPlotCtx.js~SimShimPlotCtx.html">SimShimPlotCtx</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimSanitize.js~SimShimSanitize.html">SimShimSanitize</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimUtil.js~SimShimUtil.html">SimShimUtil</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimUtilFunctional.js~SimShimUtil.html">SimShimUtil</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-ParseError">ParseError</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-newParseError">newParseError</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-add">add</a></span></span></li>
@@ -290,37 +289,20 @@ export default class SimShim {
   /**
    * Creates a SimShimObj with the provided plot manifest
    *
-   * @param {JSON Object} plot - The manifest of the plot object you would like
+   * @param {JSON Object} manifest - The manifest of the plot object to be
    *   generated
    *
    * @param {JSON Object} settings - [Optional] Additional options modifying the
-   *   colour of the plot object and it&apos;s shading (for surfaces)
+   *   colour of the plot object and it&apos;s shading (for surfaces). These
+   *   settings override any conflicting values in the manifest.
    *
    * @returns {string} - Alpha-numeric string ID to later retrieve the
    *   object with
    */
-  addPlot (plot, settings = {}) {
+  addPlot (manifest, settings = {}) {
     try {
 
-      SimShimSanitize.checkPlotObj(plot, &apos;throw&apos;) // throws
-
-      // add/parse color
-      let color = settings.color ?
-                  new THREE.Color(settings.color) :
-                  new THREE.Color().setHSL(Math.random(),80/100,65/100)
-
-      // shading type
-      let shading
-      switch (settings.shading) {
-        case &apos;smooth&apos;:
-          shading = THREE.SmoothShading
-          break
-        case &apos;flat&apos;:
-          shading = THREE.FlatShading
-          break
-        default:
-          shading = THREE.SmoothShading
-      }
+      SimShimSanitize.checkPlotObj(manifest, &apos;throw&apos;) // throws
 
       // make unique alpha-num string
       let id
@@ -329,7 +311,7 @@ export default class SimShim {
       this.ids.push(id)
 
       // parse into wrapper
-      let ssPlot = SimShimObj.fromPlotManifest( id, plot, { color, shading } ) // throws
+      let ssPlot = SimShimObj.fromPlotManifest( id, manifest, settings ) // throws
       this.plotCtx.scene.add( ssPlot.threeObj )
       this.plotCtx.objects.push( ssPlot )
 

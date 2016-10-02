@@ -37,7 +37,6 @@
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimPlotCtx.js~SimShimPlotCtx.html">SimShimPlotCtx</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimSanitize.js~SimShimSanitize.html">SimShimSanitize</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimUtil.js~SimShimUtil.html">SimShimUtil</a></span></span></li>
-<li data-ice="doc"><span data-ice="kind" class="kind-class">C</span><span data-ice="name"><span><a href="class/src/SimShimUtilFunctional.js~SimShimUtil.html">SimShimUtil</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-ParseError">ParseError</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-newParseError">newParseError</a></span></span></li>
 <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-add">add</a></span></span></li>
@@ -54,20 +53,18 @@
 import math from &apos;mathjs&apos;
 
 import U from &apos;./SimShimUtil&apos;
-import F from &apos;./SimShimUtilFunctional&apos;
 import { newParseError } from &apos;./Errors&apos;
 
 
 /**
- * Responsible for parsing input manifests into ThreeJS objects and
- * creating update functions. Exported interface is just a constructor and
- * an `update` method.
+ * Responsible for creating ThreeJS Objects and setting up update functions
+ * for plots.
  *
  * Advanced usage might require access to the input manifest, ThreeJS object,
- * update function, etc. The original input is cached in the `manifest`
- * instance variable, and an instance variable called `controller` holds
- * the reference to the ThreeJS object (`threeObj`), the update function
- * (`next`), and other properties specific to the implementation.
+ * or update function. These are stored as instance varibales:
+ *   - the input manifest (if present) is stored as `ssObj.manifest`
+ *   - the ThreeJS object is stored as `ssObj.threeObj`
+ *   - the update function is stored as `ssObj.update`
  *
  */
 export default class SimShimObj {
@@ -81,7 +78,26 @@ export default class SimShimObj {
   }
 
 
-  static fromPlotManifest(id, manifest, { color, shading }) {
+  /**
+   * Converts a plot manifest into a SimShimObj. All geometry construction and
+   * function parsing is done here.
+   *
+   * @param {string} id - A (typically) unique identifier for the instance
+   *
+   * @param {JSON Object} manifest - The description of the plot to be generated
+   *
+   * @param {JSON Object} settings - Optionally specify colour or shading
+   *   (shading is only for surface plots)
+   *
+   * @returns {SimShimObj} - The SimShimObj
+   */
+  static fromPlotManifest(id, manifest, settings) {
+
+    // parse / create color
+    let color
+    if (settings.color) color = new THREE.Color(settings.color)
+    else if (manifest.color) color = new THREE.Color(manifest.color)
+    else color = new THREE.Color().setHSL(Math.random(),80/100,65/100)
 
     let o
     switch (manifest.type) {
@@ -90,6 +106,15 @@ export default class SimShimObj {
         break;
 
       case &apos;surfaceplot&apos;:
+        // choose shading type
+        let shading, shadingStr = settings.shading || manifest.shading || &apos;smooth&apos;
+        if (shadingStr === &apos;smooth&apos;) shading = THREE.SmoothShading
+        else if (shadingStr === &apos;flat&apos;) shading = THREE.FlatShading
+        else {
+          console.warn(`[SimShim] Unrecognized shading type ${shadingStr}, using SmoothShading`)
+          shading = shading || THREE.SmoothShading
+        }
+
         o = SimShimObj._initSurface(manifest, color, shading)
         break;
 
@@ -278,7 +303,7 @@ export default class SimShimObj {
     })
     if (man.wireframe) { // TODO fix
       let wireframeMaterial = new THREE.MeshBasicMaterial({
-        color: man.wireframeColor || 0xeeeeee,
+        color: man.wireframeColor || color,
         wireframe: true,
         transparent: true
       })

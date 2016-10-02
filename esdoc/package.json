@@ -9,6 +9,7 @@
 
   "keywords": [
     "3D",
+    "plot",
     "plotting",
     "animation",
     "simulation",
@@ -17,9 +18,11 @@
   ],
 
   "scripts": {
-    "build": "webpack",
-    "watch": "webpack --watch",
-    "buildall": "echo [ BUILDING DEV ] && echo && webpack && echo && echo [ BUILDING PRODUCTION ] && echo && MINIFY=1 webpack"
+    "build-dev": "webpack",
+    "watch-dev": "webpack --watch",
+    "build-prod": "MINIFY=1 webpack",
+    "watch-prod": "MINIFY=1 webpack --watch",
+    "build-all": "echo [ BUILDING DEV ] && echo && webpack && echo && echo [ BUILDING PRODUCTION ] && echo && MINIFY=1 webpack"
   },
 
   "repository": {

@@ -36,12 +36,6 @@ window.esdocSearchIndex = [
     "class"
   ],
   [
-    "sim-shim/src/simshimutilfunctional.js~simshimutil",
-    "class/src/SimShimUtilFunctional.js~SimShimUtil.html",
-    "<span>SimShimUtil</span> <span class=\"search-result-import-path\">sim-shim/src/SimShimUtilFunctional.js</span>",
-    "class"
-  ],
-  [
     "sim-shim/src/utilfunctional.js~add",
     "function/index.html#static-function-add",
     "<span>add</span> <span class=\"search-result-import-path\">sim-shim/src/UtilFunctional.js</span>",
@@ -675,18 +669,6 @@ window.esdocSearchIndex = [
     "src/simshimutil.js~simshimutil.uniquesymbolnames",
     "class/src/SimShimUtil.js~SimShimUtil.html#static-method-uniqueSymbolNames",
     "src/SimShimUtil.js~SimShimUtil.uniqueSymbolNames",
-    "method"
-  ],
-  [
-    "src/simshimutilfunctional.js",
-    "file/src/SimShimUtilFunctional.js.html",
-    "src/SimShimUtilFunctional.js",
-    "file"
-  ],
-  [
-    "src/simshimutilfunctional.js~simshimutil.identity",
-    "class/src/SimShimUtilFunctional.js~SimShimUtil.html#static-method-identity",
-    "src/SimShimUtilFunctional.js~SimShimUtil.identity",
     "method"
   ],
   [

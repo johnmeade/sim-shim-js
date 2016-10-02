@@ -49,13 +49,13 @@
 </nav>
 
 <div class="content" data-ice="content"><div class="header-notice">
-  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import SimShimObj from &apos;<span><a href="file/src/SimShimObj.js.html#lineNumber21">sim-shim/src/SimShimObj.js</a></span>&apos;</code></pre></div>
+  <div data-ice="importPath" class="import-path"><pre class="prettyprint"><code data-ice="importPathCode">import SimShimObj from &apos;<span><a href="file/src/SimShimObj.js.html#lineNumber19">sim-shim/src/SimShimObj.js</a></span>&apos;</code></pre></div>
   <span data-ice="access">public</span>
   <span data-ice="kind">class</span>
   
   
   
-  <span data-ice="source">| <span><a href="file/src/SimShimObj.js.html#lineNumber21">source</a></span></span>
+  <span data-ice="source">| <span><a href="file/src/SimShimObj.js.html#lineNumber19">source</a></span></span>
 </div>
 
 <div class="self-detail detail">
@@ -75,14 +75,15 @@
 
   
   
-  <div class="description" data-ice="description"><p>Responsible for parsing input manifests into ThreeJS objects and
-creating update functions. Exported interface is just a constructor and
-an <code>update</code> method.</p>
+  <div class="description" data-ice="description"><p>Responsible for creating ThreeJS Objects and setting up update functions
+for plots.</p>
 <p>Advanced usage might require access to the input manifest, ThreeJS object,
-update function, etc. The original input is cached in the <code>manifest</code>
-instance variable, and an instance variable called <code>controller</code> holds
-the reference to the ThreeJS object (<code>threeObj</code>), the update function
-(<code>next</code>), and other properties specific to the implementation.</p>
+or update function. These are stored as instance varibales:</p>
+<ul>
+<li>the input manifest (if present) is stored as <code>ssObj.manifest</code></li>
+<li>the ThreeJS object is stored as <code>ssObj.threeObj</code></li>
+<li>the update function is stored as <code>ssObj.update</code></li>
+</ul>
 </div>
 
   
@@ -110,13 +111,14 @@ the reference to the ThreeJS object (<code>threeObj</code>), the update function
     <td>
       <div>
         <p>
-           <span data-ice="name"><span><a href="class/src/SimShimObj.js~SimShimObj.html#static-method-fromPlotManifest">fromPlotManifest</a></span></span><span data-ice="signature">(id: <span>*</span>, manifest: <span>*</span>, objectPattern2: {&quot;color&quot;: <span>*</span>, &quot;shading&quot;: <span>*</span>}): <span>*</span></span>
+           <span data-ice="name"><span><a href="class/src/SimShimObj.js~SimShimObj.html#static-method-fromPlotManifest">fromPlotManifest</a></span></span><span data-ice="signature">(id: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, manifest: <span>JSON Object</span>, settings: <span>JSON Object</span>): <span><a href="class/src/SimShimObj.js~SimShimObj.html">SimShimObj</a></span></span>
         </p>
       </div>
       <div>
         
         
-        
+        <div data-ice="description"><p>Converts a plot manifest into a SimShimObj.</p>
+</div>
       </div>
     </td>
     <td>
@@ -280,18 +282,20 @@ the reference to the ThreeJS object (<code>threeObj</code>), the update function
     
     
     
-    <span data-ice="name">fromPlotManifest</span><span data-ice="signature">(id: <span>*</span>, manifest: <span>*</span>, objectPattern2: {&quot;color&quot;: <span>*</span>, &quot;shading&quot;: <span>*</span>}): <span>*</span></span>
+    <span data-ice="name">fromPlotManifest</span><span data-ice="signature">(id: <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span>, manifest: <span>JSON Object</span>, settings: <span>JSON Object</span>): <span><a href="class/src/SimShimObj.js~SimShimObj.html">SimShimObj</a></span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShimObj.js.html#lineNumber32">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShimObj.js.html#lineNumber43">source</a></span></span>
     </span>
   </h3>
 
   
   
   
-  
+  <div data-ice="description"><p>Converts a plot manifest into a SimShimObj. All geometry construction and
+function parsing is done here.</p>
+</div>
 
   
 
@@ -305,21 +309,25 @@ the reference to the ThreeJS object (<code>threeObj</code>), the update function
     
     <tr data-ice="property" data-depth="0">
       <td data-ice="name" data-depth="0">id</td>
-      <td data-ice="type"><span>*</span></td>
+      <td data-ice="type"><span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"></td>
+      <td data-ice="description"><p>A (typically) unique identifier for the instance</p>
+</td>
     </tr>
 <tr data-ice="property" data-depth="0">
       <td data-ice="name" data-depth="0">manifest</td>
-      <td data-ice="type"><span>*</span></td>
+      <td data-ice="type"><span>JSON Object</span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"></td>
+      <td data-ice="description"><p>The description of the plot to be generated</p>
+</td>
     </tr>
 <tr data-ice="property" data-depth="0">
-      <td data-ice="name" data-depth="0">objectPattern2</td>
-      <td data-ice="type">{&quot;color&quot;: <span>*</span>, &quot;shading&quot;: <span>*</span>}</td>
-      <td data-ice="appendix"><ul><li>default: {&quot;color&quot;:null,&quot;shading&quot;:null}</li></ul></td>
-      <td data-ice="description"></td>
+      <td data-ice="name" data-depth="0">settings</td>
+      <td data-ice="type"><span>JSON Object</span></td>
+      <td data-ice="appendix"></td>
+      <td data-ice="description"><p>Optionally specify colour or shading
+  (shading is only for surface plots)</p>
+</td>
     </tr>
 </tbody>
   </table>
@@ -330,8 +338,9 @@ the reference to the ThreeJS object (<code>threeObj</code>), the update function
     <h4>Return:</h4>
     <table>
       <tr>
-        <td class="return-type" data-ice="returnType"><span>*</span></td>
-        
+        <td class="return-type" data-ice="returnType"><span><a href="class/src/SimShimObj.js~SimShimObj.html">SimShimObj</a></span></td>
+        <td class="return-desc" data-ice="returnDescription"><p>The SimShimObj</p>
+</td>
       </tr>
     </table>
     <div data-ice="returnProperties">
@@ -365,7 +374,7 @@ the reference to the ThreeJS object (<code>threeObj</code>), the update function
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShimObj.js.html#lineNumber24">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShimObj.js.html#lineNumber22">source</a></span></span>
     </span>
   </h3>
 
@@ -442,7 +451,7 @@ the reference to the ThreeJS object (<code>threeObj</code>), the update function
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShimObj.js.html#lineNumber25">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShimObj.js.html#lineNumber23">source</a></span></span>
     </span>
   </h3>
 
@@ -482,7 +491,7 @@ the reference to the ThreeJS object (<code>threeObj</code>), the update function
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShimObj.js.html#lineNumber26">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShimObj.js.html#lineNumber24">source</a></span></span>
     </span>
   </h3>
 
@@ -522,7 +531,7 @@ the reference to the ThreeJS object (<code>threeObj</code>), the update function
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShimObj.js.html#lineNumber27">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShimObj.js.html#lineNumber25">source</a></span></span>
     </span>
   </h3>
 
@@ -562,7 +571,7 @@ the reference to the ThreeJS object (<code>threeObj</code>), the update function
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShimObj.js.html#lineNumber28">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShimObj.js.html#lineNumber26">source</a></span></span>
     </span>
   </h3>
 

@@ -1,7 +1,7 @@
 {
-  "coverage": "28%",
+  "coverage": "30%",
   "expectCount": 50,
-  "actualCount": 14,
+  "actualCount": 15,
   "files": {
     "src/Errors.js": {
       "expectCount": 2,
@@ -16,23 +16,22 @@
       "actualCount": 11,
       "undocumentLines": [
         13,
-        483,
+        466,
         30,
         31,
         169,
-        504
+        487
       ]
     },
     "src/SimShimObj.js": {
       "expectCount": 7,
-      "actualCount": 1,
+      "actualCount": 2,
       "undocumentLines": [
+        22,
+        23,
         24,
-        32,
         25,
-        26,
-        27,
-        28
+        26
       ]
     },
     "src/SimShimPlotCtx.js": {

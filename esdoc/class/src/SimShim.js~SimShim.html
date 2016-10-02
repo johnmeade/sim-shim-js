@@ -245,7 +245,7 @@ function to be called in the render loop.</p>
     <td>
       <div>
         <p>
-           <span data-ice="name"><span><a href="class/src/SimShim.js~SimShim.html#instance-method-addPlot">addPlot</a></span></span><span data-ice="signature">(plot: <span>JSON Object</span>, settings: <span>JSON Object</span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></span>
+           <span data-ice="name"><span><a href="class/src/SimShim.js~SimShim.html#instance-method-addPlot">addPlot</a></span></span><span data-ice="signature">(manifest: <span>JSON Object</span>, settings: <span>JSON Object</span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></span>
         </p>
       </div>
       <div>
@@ -742,7 +742,7 @@ want, but you should probably avoid this when possible.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber313">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber296">source</a></span></span>
     </span>
   </h3>
 
@@ -827,11 +827,11 @@ ss.addObject(myCoolObject, null);</code></pre>
     
     
     
-    <span data-ice="name">addPlot</span><span data-ice="signature">(plot: <span>JSON Object</span>, settings: <span>JSON Object</span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></span>
+    <span data-ice="name">addPlot</span><span data-ice="signature">(manifest: <span>JSON Object</span>, settings: <span>JSON Object</span>): <span><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">string</a></span></span>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber250">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber251">source</a></span></span>
     </span>
   </h3>
 
@@ -852,10 +852,10 @@ ss.addObject(myCoolObject, null);</code></pre>
     <tbody>
     
     <tr data-ice="property" data-depth="0">
-      <td data-ice="name" data-depth="0">plot</td>
+      <td data-ice="name" data-depth="0">manifest</td>
       <td data-ice="type"><span>JSON Object</span></td>
       <td data-ice="appendix"></td>
-      <td data-ice="description"><p>The manifest of the plot object you would like
+      <td data-ice="description"><p>The manifest of the plot object to be
   generated</p>
 </td>
     </tr>
@@ -864,7 +864,8 @@ ss.addObject(myCoolObject, null);</code></pre>
       <td data-ice="type"><span>JSON Object</span></td>
       <td data-ice="appendix"></td>
       <td data-ice="description"><p>[Optional] Additional options modifying the
-  colour of the plot object and it&apos;s shading (for surfaces)</p>
+  colour of the plot object and it&apos;s shading (for surfaces). These
+  settings override any conflicting values in the manifest.</p>
 </td>
     </tr>
 </tbody>
@@ -910,7 +911,7 @@ ss.addObject(myCoolObject, null);</code></pre>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber483">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber466">source</a></span></span>
     </span>
   </h3>
 
@@ -950,7 +951,7 @@ ss.addObject(myCoolObject, null);</code></pre>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber339">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber322">source</a></span></span>
     </span>
   </h3>
 
@@ -1071,7 +1072,7 @@ ss.addObject(myCoolObject, null);</code></pre>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber375">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber358">source</a></span></span>
     </span>
   </h3>
 
@@ -1116,7 +1117,7 @@ memory leaks!)</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber406">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber389">source</a></span></span>
     </span>
   </h3>
 
@@ -1175,7 +1176,7 @@ may occur.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber351">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber334">source</a></span></span>
     </span>
   </h3>
 
@@ -1235,7 +1236,7 @@ at the moment.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber466">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber449">source</a></span></span>
     </span>
   </h3>
 
@@ -1336,7 +1337,7 @@ to a point near the middle of the action.</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber425">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber408">source</a></span></span>
     </span>
   </h3>
 
@@ -1395,7 +1396,7 @@ cameraPosn, cameraAngle, orbitTarget, lightIntensity, and autoRotate</p>
     <span class="right-info">
       
       
-      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber504">source</a></span></span>
+      <span data-ice="source"><span><a href="file/src/SimShim.js.html#lineNumber487">source</a></span></span>
     </span>
   </h3>
 
