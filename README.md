@@ -1,3 +1,6 @@
+![logo](https://raw.githubusercontent.com/codemaker1999/sim-shim-js/master/logo-500px.png)
+
+#### SimShim
 
 3D Plotting and Animation Using WebGL
 ======================================
@@ -85,11 +88,22 @@ To wait for the library to load, you can do one of the following:
 Usage
 ------
 
-Just create a valid plot manifest (JSON object), and provide a DOM element for the plot to live in.
+Plots are described by "manifests" (plain old JS Objects) that contain certain
+properties. This basically works as follows:
 
-There are several types of manifests, including lines in 3D space,
-animated 3D lines, and surface plots. For example, to make an interactive plot
-containing a triangle and a square, you could write:
+* You must specify a `'type'` property, with a value of either `'lineplot'` or
+  `'surfaceplot'`.
+
+* You can specify the optional `'animated'` property and set it to `true` or
+  `false`. This lets the lib know you are trying to create an animated plot.
+
+* Now you can choose to specify the data yourself, or supply an expression
+  string (like `'sin(x)+3*y'`) and have SimShim try to generate the data
+  for you. This is done by specifying the `'parse'` property.
+
+Once you have your manifest, you need to initialize the library with the dom
+element you want to display the plot in. This can be done in several ways, as
+shown in the first example below, which contains a triangle and a square:
 
 ```js
 var triangle = {
@@ -110,7 +124,9 @@ ss.addPlot( square );
 ss.start();
 ```
 
-to create an animated spiral / helix:
+In the next example we use the optional `animated` flag and ask SimShim to parse
+some expression strings and generate the data for us. The result of the code
+below is an animated spiral / helix:
 
 ```js
 var animSpiral = {
@@ -119,8 +135,10 @@ var animSpiral = {
     // provide parametric components:
     // [ x(t), y(t), z(t) ]
     "parse"     : [ "sin(t)", "cos(t)", "t/10" ],
+    // other needed properties for this plot type:
     "start"     : 0,
     "step"      : 1/40,
+    // your line must have a finite number of points!
     "lineLength": 10000
 };
 
@@ -148,7 +166,9 @@ ss.addPlot( blanket );
 ss.start();
 ```
 
-and to create an animated surface plot, you might write:
+and to create an animated surface plot, you set the animated flag once again.
+If you are also using the `parse` property, note that `'t'` is always
+interpretted as time:
 
 ```js
 var pulsingBlanket = {
@@ -170,7 +190,7 @@ ss.addPlot( pulsingBlanket );
 ss.start();
 ```
 
-Trying to remember which properties to use for specific plot types is very cumbersome, so there is a lot of built-in help for dealing with this problem. The `examples/` folder has a minimal example for each type of plot supported, so they're the best starting points. Otherwise, you can basically just guess your way through writing the manifests, as there is a built-in system that tells you (by logging errors in the console) if the manifest is missing any properties based on the type of plot you are using.
+Trying to remember which properties to use for specific plot types is very cumbersome, so there is a lot of built-in help for dealing with this problem. The `examples/` folder has a minimal example for each type of plot supported, so they're the best starting points. Otherwise, you can basically just guess your way through writing the manifests, as there is a built-in system that tells you (by logging errors in the console) if the manifest is missing any properties based on the type of plot you seem to be trying to create.
 
 Once the manifest is done, SimShim will figure the rest out. There are many customizable options, some of which can be found in the examples at http://codemaker1999.github.io/sim-shim-js.
 
@@ -213,8 +233,11 @@ Building
 ```bash
 npm install
 # only un-minified files:
-npm build
-npm watch
+npm build-dev
+npm watch-dev
+# only minified files:
+npm build-prod
+npm watch-prod
 # build both dev and production
 npm buildall
 ```

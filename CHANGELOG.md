@@ -4,9 +4,8 @@
 * Add lots of helpful errors
 * Rename `SimShimPlot` to `SimShimObj`
 * Rename `getPlot` to `getById`
-* Internal API refactor, breaking changes for advanced usage (simple usages,
-  like those found in the `examples/` folder, are unaffected) -- API for
-  SimShimPlot has changed, see docs
+* API for SimShimObj has changed, this is a breaking change for advanced usage
+  (simple usages, like those found in the `examples/` folder, are unaffected)
 
 
 **0.1.0**

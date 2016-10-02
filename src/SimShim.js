@@ -238,37 +238,20 @@ export default class SimShim {
   /**
    * Creates a SimShimObj with the provided plot manifest
    *
-   * @param {JSON Object} plot - The manifest of the plot object you would like
+   * @param {JSON Object} manifest - The manifest of the plot object to be
    *   generated
    *
    * @param {JSON Object} settings - [Optional] Additional options modifying the
-   *   colour of the plot object and it's shading (for surfaces)
+   *   colour of the plot object and it's shading (for surfaces). These
+   *   settings override any conflicting values in the manifest.
    *
    * @returns {string} - Alpha-numeric string ID to later retrieve the
    *   object with
    */
-  addPlot (plot, settings = {}) {
+  addPlot (manifest, settings = {}) {
     try {
 
-      SimShimSanitize.checkPlotObj(plot, 'throw') // throws
-
-      // add/parse color
-      let color = settings.color ?
-                  new THREE.Color(settings.color) :
-                  new THREE.Color().setHSL(Math.random(),80/100,65/100)
-
-      // shading type
-      let shading
-      switch (settings.shading) {
-        case 'smooth':
-          shading = THREE.SmoothShading
-          break
-        case 'flat':
-          shading = THREE.FlatShading
-          break
-        default:
-          shading = THREE.SmoothShading
-      }
+      SimShimSanitize.checkPlotObj(manifest, 'throw') // throws
 
       // make unique alpha-num string
       let id
@@ -277,7 +260,7 @@ export default class SimShim {
       this.ids.push(id)
 
       // parse into wrapper
-      let ssPlot = SimShimObj.fromPlotManifest( id, plot, { color, shading } ) // throws
+      let ssPlot = SimShimObj.fromPlotManifest( id, manifest, settings ) // throws
       this.plotCtx.scene.add( ssPlot.threeObj )
       this.plotCtx.objects.push( ssPlot )
 

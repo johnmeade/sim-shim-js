@@ -6,15 +6,14 @@ import { newParseError } from './Errors'
 
 
 /**
- * Responsible for parsing input manifests into ThreeJS objects and
- * creating update functions. Exported interface is just a constructor and
- * an `update` method.
+ * Responsible for creating ThreeJS Objects and setting up update functions
+ * for plots.
  *
  * Advanced usage might require access to the input manifest, ThreeJS object,
- * update function, etc. The original input is cached in the `manifest`
- * instance variable, and an instance variable called `controller` holds
- * the reference to the ThreeJS object (`threeObj`), the update function
- * (`next`), and other properties specific to the implementation.
+ * or update function. These are stored as instance varibales:
+ *   - the input manifest (if present) is stored as `ssObj.manifest`
+ *   - the ThreeJS object is stored as `ssObj.threeObj`
+ *   - the update function is stored as `ssObj.update`
  *
  */
 export default class SimShimObj {
@@ -28,7 +27,26 @@ export default class SimShimObj {
   }
 
 
-  static fromPlotManifest(id, manifest, { color, shading }) {
+  /**
+   * Converts a plot manifest into a SimShimObj. All geometry construction and
+   * function parsing is done here.
+   *
+   * @param {string} id - A (typically) unique identifier for the instance
+   *
+   * @param {JSON Object} manifest - The description of the plot to be generated
+   *
+   * @param {JSON Object} settings - Optionally specify colour or shading
+   *   (shading is only for surface plots)
+   *
+   * @returns {SimShimObj} - The SimShimObj
+   */
+  static fromPlotManifest(id, manifest, settings) {
+
+    // parse / create color
+    let color
+    if (settings.color) color = new THREE.Color(settings.color)
+    else if (manifest.color) color = new THREE.Color(manifest.color)
+    else color = new THREE.Color().setHSL(Math.random(),80/100,65/100)
 
     let o
     switch (manifest.type) {
@@ -37,6 +55,15 @@ export default class SimShimObj {
         break;
 
       case 'surfaceplot':
+        // choose shading type
+        let shading, shadingStr = settings.shading || manifest.shading || 'smooth'
+        if (shadingStr === 'smooth') shading = THREE.SmoothShading
+        else if (shadingStr === 'flat') shading = THREE.FlatShading
+        else {
+          console.warn(`[SimShim] Unrecognized shading type ${shadingStr}, using SmoothShading`)
+          shading = shading || THREE.SmoothShading
+        }
+
         o = SimShimObj._initSurface(manifest, color, shading)
         break;
 
@@ -225,7 +252,7 @@ export default class SimShimObj {
     })
     if (man.wireframe) { // TODO fix
       let wireframeMaterial = new THREE.MeshBasicMaterial({
-        color: man.wireframeColor || 0xeeeeee,
+        color: man.wireframeColor || color,
         wireframe: true,
         transparent: true
       })
