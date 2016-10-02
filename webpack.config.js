@@ -7,6 +7,10 @@ var MINIFY = JSON.parse(process.env.MINIFY || '0');
 // get licences string ready for appending
 var LICS = fs.readFileSync('LICENSES.js').toString();
 
+// read version number
+var v = JSON.parse(fs.readFileSync('package.json').toString()).version,
+    vStr = '\n\n/*! SimShim Version: '+v+' */\n';
+
 
 module.exports = {
 
@@ -33,7 +37,7 @@ module.exports = {
         test: /\.js$/,
         exclude: /(node_modules)/,
         loader: 'webpack-append',
-        query: LICS
+        query: vStr + LICS
       }
     ]
   },

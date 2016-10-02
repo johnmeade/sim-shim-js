@@ -53,33 +53,31 @@
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	window.SimShim = _SimShim2.default;
-	/* LICENSES
 	
-	sim-shim-js
-	https://github.com/codemaker1999/sim-shim-js
-	The MIT License
-	Copyright (c) 2016 John Meade
-
-	three.js
-	http://threejs.org
-	https://github.com/mrdoob/three.js/
-	The MIT License
-	Copyright (c) 2010-2016 three.js authors
-
-	math.js
-	http://mathjs.org
-	https://github.com/josdejong/mathjs
-	Apache License
-	Version 2.0, January 2004
-	http://www.apache.org/licenses/
-
-	chai.js
-	http://chaijs.com
-	https://github.com/chaijs/chai
-	The MIT License
-	Copyright (c) 2011-2015 Jake Luer jake@alogicalparadox.com
-
-	*/
+	/*! SimShim Version: 0.2.0 */
+	
+	/**
+	 * @license
+	 *
+	 * sim-shim-js
+	 * https://github.com/codemaker1999/sim-shim-js
+	 * The MIT License
+	 * Copyright (c) 2016 John Meade
+	 *
+	 * three.js
+	 * http://threejs.org
+	 * https://github.com/mrdoob/three.js/
+	 * The MIT License
+	 * Copyright (c) 2010-2016 three.js authors
+	 *
+	 * math.js
+	 * http://mathjs.org
+	 * https://github.com/josdejong/mathjs
+	 * Apache License
+	 * Version 2.0, January 2004
+	 * http://www.apache.org/licenses/
+	 *
+	 */
 
 /***/ },
 /* 1 */
@@ -88,33 +86,31 @@
 	'use strict';
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	/* LICENSES
 	
-	sim-shim-js
-	https://github.com/codemaker1999/sim-shim-js
-	The MIT License
-	Copyright (c) 2016 John Meade
+	/*! SimShim Version: 0.2.0 */
 	
-	three.js
-	http://threejs.org
-	https://github.com/mrdoob/three.js/
-	The MIT License
-	Copyright (c) 2010-2016 three.js authors
-	
-	math.js
-	http://mathjs.org
-	https://github.com/josdejong/mathjs
-	Apache License
-	Version 2.0, January 2004
-	http://www.apache.org/licenses/
-	
-	chai.js
-	http://chaijs.com
-	https://github.com/chaijs/chai
-	The MIT License
-	Copyright (c) 2011-2015 Jake Luer jake@alogicalparadox.com
-	
-	*/
+	/**
+	 * @license
+	 *
+	 * sim-shim-js
+	 * https://github.com/codemaker1999/sim-shim-js
+	 * The MIT License
+	 * Copyright (c) 2016 John Meade
+	 *
+	 * three.js
+	 * http://threejs.org
+	 * https://github.com/mrdoob/three.js/
+	 * The MIT License
+	 * Copyright (c) 2010-2016 three.js authors
+	 *
+	 * math.js
+	 * http://mathjs.org
+	 * https://github.com/josdejong/mathjs
+	 * Apache License
+	 * Version 2.0, January 2004
+	 * http://www.apache.org/licenses/
+	 *
+	 */
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -378,11 +374,12 @@
 	    /**
 	     * Creates a SimShimObj with the provided plot manifest
 	     *
-	     * @param {JSON Object} plot - The manifest of the plot object you would like
+	     * @param {JSON Object} manifest - The manifest of the plot object to be
 	     *   generated
 	     *
 	     * @param {JSON Object} settings - [Optional] Additional options modifying the
-	     *   colour of the plot object and it's shading (for surfaces)
+	     *   colour of the plot object and it's shading (for surfaces). These
+	     *   settings override any conflicting values in the manifest.
 	     *
 	     * @returns {string} - Alpha-numeric string ID to later retrieve the
 	     *   object with
@@ -390,28 +387,12 @@
 	
 	  }, {
 	    key: 'addPlot',
-	    value: function addPlot(plot) {
+	    value: function addPlot(manifest) {
 	      var settings = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 	
 	      try {
 	
-	        _SimShimSanitize2.default.checkPlotObj(plot, 'throw'); // throws
-	
-	        // add/parse color
-	        var color = settings.color ? new _three2.default.Color(settings.color) : new _three2.default.Color().setHSL(Math.random(), 80 / 100, 65 / 100);
-	
-	        // shading type
-	        var shading = void 0;
-	        switch (settings.shading) {
-	          case 'smooth':
-	            shading = _three2.default.SmoothShading;
-	            break;
-	          case 'flat':
-	            shading = _three2.default.FlatShading;
-	            break;
-	          default:
-	            shading = _three2.default.SmoothShading;
-	        }
+	        _SimShimSanitize2.default.checkPlotObj(manifest, 'throw'); // throws
 	
 	        // make unique alpha-num string
 	        var id = void 0;
@@ -421,7 +402,7 @@
 	        this.ids.push(id);
 	
 	        // parse into wrapper
-	        var ssPlot = _SimShimObj2.default.fromPlotManifest(id, plot, { color: color, shading: shading }); // throws
+	        var ssPlot = _SimShimObj2.default.fromPlotManifest(id, manifest, settings); // throws
 	        this.plotCtx.scene.add(ssPlot.threeObj);
 	        this.plotCtx.objects.push(ssPlot);
 	
@@ -42459,33 +42440,31 @@
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	/* LICENSES
 	
-	sim-shim-js
-	https://github.com/codemaker1999/sim-shim-js
-	The MIT License
-	Copyright (c) 2016 John Meade
+	/*! SimShim Version: 0.2.0 */
 	
-	three.js
-	http://threejs.org
-	https://github.com/mrdoob/three.js/
-	The MIT License
-	Copyright (c) 2010-2016 three.js authors
-	
-	math.js
-	http://mathjs.org
-	https://github.com/josdejong/mathjs
-	Apache License
-	Version 2.0, January 2004
-	http://www.apache.org/licenses/
-	
-	chai.js
-	http://chaijs.com
-	https://github.com/chaijs/chai
-	The MIT License
-	Copyright (c) 2011-2015 Jake Luer jake@alogicalparadox.com
-	
-	*/
+	/**
+	 * @license
+	 *
+	 * sim-shim-js
+	 * https://github.com/codemaker1999/sim-shim-js
+	 * The MIT License
+	 * Copyright (c) 2016 John Meade
+	 *
+	 * three.js
+	 * http://threejs.org
+	 * https://github.com/mrdoob/three.js/
+	 * The MIT License
+	 * Copyright (c) 2010-2016 three.js authors
+	 *
+	 * math.js
+	 * http://mathjs.org
+	 * https://github.com/josdejong/mathjs
+	 * Apache License
+	 * Version 2.0, January 2004
+	 * http://www.apache.org/licenses/
+	 *
+	 */
 	
 	// import chai from 'chai'
 	
@@ -42712,33 +42691,31 @@
 	  _throwable2.default.call(this, wrapped);
 	  this.name = 'ParseError';
 	}
-	/* LICENSES
 	
-	sim-shim-js
-	https://github.com/codemaker1999/sim-shim-js
-	The MIT License
-	Copyright (c) 2016 John Meade
+	/*! SimShim Version: 0.2.0 */
 	
-	three.js
-	http://threejs.org
-	https://github.com/mrdoob/three.js/
-	The MIT License
-	Copyright (c) 2010-2016 three.js authors
-	
-	math.js
-	http://mathjs.org
-	https://github.com/josdejong/mathjs
-	Apache License
-	Version 2.0, January 2004
-	http://www.apache.org/licenses/
-	
-	chai.js
-	http://chaijs.com
-	https://github.com/chaijs/chai
-	The MIT License
-	Copyright (c) 2011-2015 Jake Luer jake@alogicalparadox.com
-	
-	*/
+	/**
+	 * @license
+	 *
+	 * sim-shim-js
+	 * https://github.com/codemaker1999/sim-shim-js
+	 * The MIT License
+	 * Copyright (c) 2016 John Meade
+	 *
+	 * three.js
+	 * http://threejs.org
+	 * https://github.com/mrdoob/three.js/
+	 * The MIT License
+	 * Copyright (c) 2010-2016 three.js authors
+	 *
+	 * math.js
+	 * http://mathjs.org
+	 * https://github.com/josdejong/mathjs
+	 * Apache License
+	 * Version 2.0, January 2004
+	 * http://www.apache.org/licenses/
+	 *
+	 */
 	
 	function newParseError(msg) {
 	  return new ParseError(Error(msg));
@@ -42832,33 +42809,31 @@
 	'use strict';
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	/* LICENSES
 	
-	sim-shim-js
-	https://github.com/codemaker1999/sim-shim-js
-	The MIT License
-	Copyright (c) 2016 John Meade
+	/*! SimShim Version: 0.2.0 */
 	
-	three.js
-	http://threejs.org
-	https://github.com/mrdoob/three.js/
-	The MIT License
-	Copyright (c) 2010-2016 three.js authors
-	
-	math.js
-	http://mathjs.org
-	https://github.com/josdejong/mathjs
-	Apache License
-	Version 2.0, January 2004
-	http://www.apache.org/licenses/
-	
-	chai.js
-	http://chaijs.com
-	https://github.com/chaijs/chai
-	The MIT License
-	Copyright (c) 2011-2015 Jake Luer jake@alogicalparadox.com
-	
-	*/
+	/**
+	 * @license
+	 *
+	 * sim-shim-js
+	 * https://github.com/codemaker1999/sim-shim-js
+	 * The MIT License
+	 * Copyright (c) 2016 John Meade
+	 *
+	 * three.js
+	 * http://threejs.org
+	 * https://github.com/mrdoob/three.js/
+	 * The MIT License
+	 * Copyright (c) 2010-2016 three.js authors
+	 *
+	 * math.js
+	 * http://mathjs.org
+	 * https://github.com/josdejong/mathjs
+	 * Apache License
+	 * Version 2.0, January 2004
+	 * http://www.apache.org/licenses/
+	 *
+	 */
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -42965,33 +42940,31 @@
 	'use strict';
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	/* LICENSES
 	
-	sim-shim-js
-	https://github.com/codemaker1999/sim-shim-js
-	The MIT License
-	Copyright (c) 2016 John Meade
+	/*! SimShim Version: 0.2.0 */
 	
-	three.js
-	http://threejs.org
-	https://github.com/mrdoob/three.js/
-	The MIT License
-	Copyright (c) 2010-2016 three.js authors
-	
-	math.js
-	http://mathjs.org
-	https://github.com/josdejong/mathjs
-	Apache License
-	Version 2.0, January 2004
-	http://www.apache.org/licenses/
-	
-	chai.js
-	http://chaijs.com
-	https://github.com/chaijs/chai
-	The MIT License
-	Copyright (c) 2011-2015 Jake Luer jake@alogicalparadox.com
-	
-	*/
+	/**
+	 * @license
+	 *
+	 * sim-shim-js
+	 * https://github.com/codemaker1999/sim-shim-js
+	 * The MIT License
+	 * Copyright (c) 2016 John Meade
+	 *
+	 * three.js
+	 * http://threejs.org
+	 * https://github.com/mrdoob/three.js/
+	 * The MIT License
+	 * Copyright (c) 2010-2016 three.js authors
+	 *
+	 * math.js
+	 * http://mathjs.org
+	 * https://github.com/josdejong/mathjs
+	 * Apache License
+	 * Version 2.0, January 2004
+	 * http://www.apache.org/licenses/
+	 *
+	 */
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -43016,15 +42989,14 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
 	/**
-	 * Responsible for parsing input manifests into ThreeJS objects and
-	 * creating update functions. Exported interface is just a constructor and
-	 * an `update` method.
+	 * Responsible for creating ThreeJS Objects and setting up update functions
+	 * for plots.
 	 *
 	 * Advanced usage might require access to the input manifest, ThreeJS object,
-	 * update function, etc. The original input is cached in the `manifest`
-	 * instance variable, and an instance variable called `controller` holds
-	 * the reference to the ThreeJS object (`threeObj`), the update function
-	 * (`next`), and other properties specific to the implementation.
+	 * or update function. These are stored as instance varibales:
+	 *   - the input manifest (if present) is stored as `ssObj.manifest`
+	 *   - the ThreeJS object is stored as `ssObj.threeObj`
+	 *   - the update function is stored as `ssObj.update`
 	 *
 	 */
 	var SimShimObj = function () {
@@ -43037,12 +43009,28 @@
 	    this.update = update;
 	  }
 	
+	  /**
+	   * Converts a plot manifest into a SimShimObj. All geometry construction and
+	   * function parsing is done here.
+	   *
+	   * @param {string} id - A (typically) unique identifier for the instance
+	   *
+	   * @param {JSON Object} manifest - The description of the plot to be generated
+	   *
+	   * @param {JSON Object} settings - Optionally specify colour or shading
+	   *   (shading is only for surface plots)
+	   *
+	   * @returns {SimShimObj} - The SimShimObj
+	   */
+	
+	
 	  _createClass(SimShimObj, null, [{
 	    key: 'fromPlotManifest',
-	    value: function fromPlotManifest(id, manifest, _ref) {
-	      var color = _ref.color;
-	      var shading = _ref.shading;
+	    value: function fromPlotManifest(id, manifest, settings) {
 	
+	      // parse / create color
+	      var color = void 0;
+	      if (settings.color) color = new _three2.default.Color(settings.color);else if (manifest.color) color = new _three2.default.Color(manifest.color);else color = new _three2.default.Color().setHSL(Math.random(), 80 / 100, 65 / 100);
 	
 	      var o = void 0;
 	      switch (manifest.type) {
@@ -43051,6 +43039,14 @@
 	          break;
 	
 	        case 'surfaceplot':
+	          // choose shading type
+	          var shading = void 0,
+	              shadingStr = settings.shading || manifest.shading || 'smooth';
+	          if (shadingStr === 'smooth') shading = _three2.default.SmoothShading;else if (shadingStr === 'flat') shading = _three2.default.FlatShading;else {
+	            console.warn('[SimShim] Unrecognized shading type ' + shadingStr + ', using SmoothShading');
+	            shading = shading || _three2.default.SmoothShading;
+	          }
+	
 	          o = SimShimObj._initSurface(manifest, color, shading);
 	          break;
 	
@@ -43265,7 +43261,7 @@
 	      if (man.wireframe) {
 	        // TODO fix
 	        var _wireframeMaterial = new _three2.default.MeshBasicMaterial({
-	          color: man.wireframeColor || 0xeeeeee,
+	          color: man.wireframeColor || color,
 	          wireframe: true,
 	          transparent: true
 	        });
@@ -97889,33 +97885,31 @@
 	'use strict';
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	/* LICENSES
 	
-	sim-shim-js
-	https://github.com/codemaker1999/sim-shim-js
-	The MIT License
-	Copyright (c) 2016 John Meade
+	/*! SimShim Version: 0.2.0 */
 	
-	three.js
-	http://threejs.org
-	https://github.com/mrdoob/three.js/
-	The MIT License
-	Copyright (c) 2010-2016 three.js authors
-	
-	math.js
-	http://mathjs.org
-	https://github.com/josdejong/mathjs
-	Apache License
-	Version 2.0, January 2004
-	http://www.apache.org/licenses/
-	
-	chai.js
-	http://chaijs.com
-	https://github.com/chaijs/chai
-	The MIT License
-	Copyright (c) 2011-2015 Jake Luer jake@alogicalparadox.com
-	
-	*/
+	/**
+	 * @license
+	 *
+	 * sim-shim-js
+	 * https://github.com/codemaker1999/sim-shim-js
+	 * The MIT License
+	 * Copyright (c) 2016 John Meade
+	 *
+	 * three.js
+	 * http://threejs.org
+	 * https://github.com/mrdoob/three.js/
+	 * The MIT License
+	 * Copyright (c) 2010-2016 three.js authors
+	 *
+	 * math.js
+	 * http://mathjs.org
+	 * https://github.com/josdejong/mathjs
+	 * Apache License
+	 * Version 2.0, January 2004
+	 * http://www.apache.org/licenses/
+	 *
+	 */
 	
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -98307,33 +98301,31 @@
 		this.updateMovementVector();
 		this.updateRotationVector();
 	}
-	/* LICENSES
 	
-	sim-shim-js
-	https://github.com/codemaker1999/sim-shim-js
-	The MIT License
-	Copyright (c) 2016 John Meade
+	/*! SimShim Version: 0.2.0 */
 	
-	three.js
-	http://threejs.org
-	https://github.com/mrdoob/three.js/
-	The MIT License
-	Copyright (c) 2010-2016 three.js authors
-	
-	math.js
-	http://mathjs.org
-	https://github.com/josdejong/mathjs
-	Apache License
-	Version 2.0, January 2004
-	http://www.apache.org/licenses/
-	
-	chai.js
-	http://chaijs.com
-	https://github.com/chaijs/chai
-	The MIT License
-	Copyright (c) 2011-2015 Jake Luer jake@alogicalparadox.com
-	
-	*/
+	/**
+	 * @license
+	 *
+	 * sim-shim-js
+	 * https://github.com/codemaker1999/sim-shim-js
+	 * The MIT License
+	 * Copyright (c) 2016 John Meade
+	 *
+	 * three.js
+	 * http://threejs.org
+	 * https://github.com/mrdoob/three.js/
+	 * The MIT License
+	 * Copyright (c) 2010-2016 three.js authors
+	 *
+	 * math.js
+	 * http://mathjs.org
+	 * https://github.com/josdejong/mathjs
+	 * Apache License
+	 * Version 2.0, January 2004
+	 * http://www.apache.org/licenses/
+	 *
+	 */
 	
 	/**
 	 * @author James Baicoianu / http://www.baicoianu.com/
@@ -98942,33 +98934,31 @@
 		// force an update at start
 		this.update();
 	}
-	/* LICENSES
 	
-	sim-shim-js
-	https://github.com/codemaker1999/sim-shim-js
-	The MIT License
-	Copyright (c) 2016 John Meade
+	/*! SimShim Version: 0.2.0 */
 	
-	three.js
-	http://threejs.org
-	https://github.com/mrdoob/three.js/
-	The MIT License
-	Copyright (c) 2010-2016 three.js authors
-	
-	math.js
-	http://mathjs.org
-	https://github.com/josdejong/mathjs
-	Apache License
-	Version 2.0, January 2004
-	http://www.apache.org/licenses/
-	
-	chai.js
-	http://chaijs.com
-	https://github.com/chaijs/chai
-	The MIT License
-	Copyright (c) 2011-2015 Jake Luer jake@alogicalparadox.com
-	
-	*/
+	/**
+	 * @license
+	 *
+	 * sim-shim-js
+	 * https://github.com/codemaker1999/sim-shim-js
+	 * The MIT License
+	 * Copyright (c) 2016 John Meade
+	 *
+	 * three.js
+	 * http://threejs.org
+	 * https://github.com/mrdoob/three.js/
+	 * The MIT License
+	 * Copyright (c) 2010-2016 three.js authors
+	 *
+	 * math.js
+	 * http://mathjs.org
+	 * https://github.com/josdejong/mathjs
+	 * Apache License
+	 * Version 2.0, January 2004
+	 * http://www.apache.org/licenses/
+	 *
+	 */
 	
 	/**
 	 * @author qiao / https://github.com/qiao

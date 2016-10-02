@@ -22,7 +22,7 @@
     "watch-dev": "webpack --watch",
     "build-prod": "MINIFY=1 webpack",
     "watch-prod": "MINIFY=1 webpack --watch",
-    "buildall": "echo [ BUILDING DEV ] && echo && webpack && echo && echo [ BUILDING PRODUCTION ] && echo && MINIFY=1 webpack"
+    "build-all": "echo [ BUILDING DEV ] && echo && webpack && echo && echo [ BUILDING PRODUCTION ] && echo && MINIFY=1 webpack"
   },
 
   "repository": {

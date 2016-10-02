@@ -24,67 +24,6 @@ the library in the `examples` folder. See them in action (and fiddle with them)
 [here](http://codemaker1999.github.io/sim-shim-js).
 
 
-Importing
-----------
-
-This is a fairly large library, and so it might take a bit of time for
-your browser to load it. Because you cannot be sure how browsers will
-handle this, you should wait for the page to load before running any JS files
-that instantiate `SimShim`. The error you get when the library is not yet
-loaded will look something like this:
-```
-Uncaught TypeError: SimShim is not a constructor
-```
-
-To wait for the library to load, you can do one of the following:
-
-* Add a `defer` attribute to the `<script>` tag with your javascript that uses
-  the library
-  ```html
-  <script src=".../sim-shim-bundle.js"></script>
-  <script defer src=".../your-file.js"></script>
-  ```
-  When this attribute is present (make sure the `async` attribute is not also
-  present!), the script is run when the page is finished loading.
-
-* If you're using JQuery, you can import the library using JS (meaning you
-  don't need to have a `<script>` tag for `sim-shim-bundle.js` in your html
-  at all) like this:
-  ```js
-  $.getScript(".../sim-shim-bundle.js", function(){
-    var ss = new SimShim('#plot');
-    // ...
-  });
-  ```
-
-* If you would like to have the `<script>` tag to import, you can also set up
-  listeners for the event signifying the page has been loaded. To do this,
-  put your SimShim code inside a function, say this one:
-  ```js
-  function yourCoolInitializer() {
-    var ss = new SimShim('#plot');
-    // ...
-  }
-  ```
-
-  Then, if you are using JQuery, you now just have to do the following:
-  ```js
-  $(window).load(yourCoolInitializer)
-  ```
-
-  If you are using plain JS it's a bit messier, as there are several ways to do
-  the listening depending on which browser is being used:
-  ```js
-  if (window.addEventListener) {
-    window.addEventListener("load", yourCoolInitializer, false);
-  } else if (window.attachEvent) {
-    window.attachEvent("onload", yourCoolInitializer);
-  } else {
-    window.onload = yourCoolInitializer;
-  }
-  ```
-
-
 Usage
 ------
 
@@ -209,6 +148,73 @@ The scheme used for controls is a camera looking at a point in space (the orbit 
 * Use the arrow keys to manually move the point the camera is looking at
 
 
+Importing
+----------
+
+This is a fairly large library, and so it might take a bit of time for
+your browser to download it. If you are not concerned about the load time
+in your web page before all content is displayed, you can simply ignore this
+and just make sure the script tag that imports this library is above any script
+tags that make use of it in your html. If you want the best experience on your
+site then you should do one of the following (or similar)
+
+* [Recommended] Add a `defer` attribute to all `<script>` tags that import or
+  use the library:
+  ```html
+  <script defer src=".../sim-shim-bundle.js"></script>
+  <script defer src=".../your-simulation.js"></script>
+  ```
+  When this attribute is present, the script is run when the page is finished
+  loading. The original order of the scripts is maintained when the browser
+  processes deferred scripts (make sure you import the lib above the script tags
+  that use it).
+
+* Make sure your script tags are at the bottom of the `<body>` tag, after all
+  other content, and that the tag that imports the library is above the scripts
+  that use it.
+  ```html
+    <!-- ... -->
+    <script src=".../sim-shim-bundle.js"></script>
+    <script src=".../your-simulation.js"></script>
+  </body>
+  ```
+
+* If you're using JQuery, you can import the library using JS (meaning you
+  don't need to have a `<script>` tag for `sim-shim-bundle.js` in your html
+  at all) like this:
+  ```js
+  // with JQuery
+
+  $.getScript(".../sim-shim-bundle.js", function(){
+    var ss = new SimShim('#plot');
+    // ...
+  });
+
+  // without JQuery
+
+  function getScript(url, callback) {
+      // Adding the script tag to the head as suggested before
+      var head = document.getElementsByTagName('head')[0];
+      var script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = url;
+
+      // Then bind the event to the callback function.
+      // There are several events for cross browser compatibility.
+      script.onreadystatechange = callback;
+      script.onload = callback;
+
+      // Fire the loading
+      head.appendChild(script);
+  }
+
+  getScript(".../sim-shim-bundle.js", function(){
+    var ss = new SimShim('#plot');
+    // ...
+  });
+  ```
+
+
 Notes and Tips
 ---------------
 
@@ -239,7 +245,7 @@ npm watch-dev
 npm build-prod
 npm watch-prod
 # build both dev and production
-npm buildall
+npm build-all
 ```
 
 
