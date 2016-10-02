@@ -1,4 +1,4 @@
-![logo](https://raw.githubusercontent.com/codemaker1999/sim-shim-js/master/logo-500px.png)
+![logo](https://raw.githubusercontent.com/codemaker1999/sim-shim-js/master/logo-150px.png)
 
 #### SimShim
 
