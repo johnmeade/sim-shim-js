@@ -1,11 +1,11 @@
-![logo](https://raw.githubusercontent.com/codemaker1999/sim-shim-js/master/logo-150px.png)
+![logo](https://raw.githubusercontent.com/johnmeade/sim-shim-js/master/logo-150px.png)
 
 #### SimShim
 
 3D Plotting and Animation Using WebGL
 ======================================
 
-**Try it out and see examples at http://codemaker1999.github.io/sim-shim-js**
+**Try it out and see examples at http://johnmeade.github.io/sim-shim-js**
 
 The main goals of this project are to provide
 
@@ -21,7 +21,7 @@ Examples
 
 There is an included set of examples that demonstrates all supported uses of
 the library in the `examples` folder. See them in action (and fiddle with them)
-[here](http://codemaker1999.github.io/sim-shim-js).
+[here](http://johnmeade.github.io/sim-shim-js).
 
 
 Usage
@@ -131,7 +131,7 @@ ss.start();
 
 Trying to remember which properties to use for specific plot types is very cumbersome, so there is a lot of built-in help for dealing with this problem. The `examples/` folder has a minimal example for each type of plot supported, so they're the best starting points. Otherwise, you can basically just guess your way through writing the manifests, as there is a built-in system that tells you (by logging errors in the console) if the manifest is missing any properties based on the type of plot you seem to be trying to create.
 
-Once the manifest is done, SimShim will figure the rest out. There are many customizable options, some of which can be found in the examples at http://codemaker1999.github.io/sim-shim-js.
+Once the manifest is done, SimShim will figure the rest out. There are many customizable options, some of which can be found in the examples at http://johnmeade.github.io/sim-shim-js.
 
 
 Controls
